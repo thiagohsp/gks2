@@ -43,7 +43,7 @@ class UpdateInvoicesCron extends Command
         $this->http = Http::baseUrl('https://api.maino.com.br/api/v2/')
             ->contentType('application/json')
             ->withHeaders([
-                'X-Api-Key' => 'e2f9a7d686625ca2329004bb8241f15f'
+                'X-Api-Key' => env('MAINO_KEY')
             ]);
     }
 
@@ -82,6 +82,8 @@ class UpdateInvoicesCron extends Command
                     continue;
                 }
 
+                Log::alert('Found Invoice by Key: '.$invoice);
+
                 if ($invoice->isEmpty()) {
 
                     $nota_fiscal->destinatario = (object) array_merge( (array) $nota_fiscal->destinatario,
@@ -105,6 +107,8 @@ class UpdateInvoicesCron extends Command
                     );
 
                     Log::info($invoice);
+                } else {
+                    $invoice = $invoice->first();
                 }
 
                 // Consulta contas a receber
