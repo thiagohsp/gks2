@@ -16,10 +16,10 @@ class InvoiceController extends Controller
     }
 
     public function index() {
-        // return Inertia::render('Invoices/Index', [
-        //    'invoices' => $this->invoiceRepository->paginate(20, ['*'], ['customer']),
-        // ]);
-        return response()->json($this->invoiceRepository->paginate(20, ['*'], ['customer']), 200);
+        return Inertia::render('Invoices/Index', [
+            'invoices' => $this->invoiceRepository->paginate(20, ['*'], ['customer']),
+         ]);
+        //return response()->json($this->invoiceRepository->paginate(20, ['*'], ['customer']), 200);
     }
 
     public function store(Request $req) {

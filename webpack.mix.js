@@ -14,7 +14,8 @@ const path = require('path');
 
 mix.ts("resources/js/app.tsx", "public/js")
     .postCss("resources/css/app.css", "public/css", [
-        //
+        require('tailwindcss'),
+        require('autoprefixer')
     ])
     .webpackConfig({
         output: { chunkFilename: "js/[name].js?id=[chunkhash]" },
