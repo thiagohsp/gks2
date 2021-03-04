@@ -1858,6 +1858,59 @@ module.exports = {
 
 /***/ }),
 
+/***/ "./resources/js/Pages/Invoices/Index.tsx":
+/*!***********************************************!*\
+  !*** ./resources/js/Pages/Invoices/Index.tsx ***!
+  \***********************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var __importDefault = this && this.__importDefault || function (mod) {
+  return mod && mod.__esModule ? mod : {
+    "default": mod
+  };
+};
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+
+var react_1 = __importDefault(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
+
+var Invoices = function Invoices(props) {
+  var data = props.invoices.data;
+  return react_1["default"].createElement("div", {
+    className: "container"
+  }, react_1["default"].createElement("table", {
+    className: "w-full whitespace-nowrap bordered"
+  }, react_1["default"].createElement("tbody", null, data.map(function (item) {
+    return react_1["default"].createElement("tr", {
+      key: item.id,
+      className: "hover:bg-gray-100 focus-within:bg-gray-100"
+    }, react_1["default"].createElement("td", {
+      className: "border-t"
+    }, " ", item.number, " "), react_1["default"].createElement("td", {
+      className: "border-t"
+    }, " ", item.date, " "), react_1["default"].createElement("td", {
+      className: "border-t"
+    }, " ", item.serie, " "), react_1["default"].createElement("td", {
+      className: "border-t"
+    }, " ", item.cfop, " "), react_1["default"].createElement("td", {
+      className: "border-t"
+    }, " ", item.customer.social_name, " "), react_1["default"].createElement("td", {
+      className: "border-t"
+    }, " ", item.value, " "), react_1["default"].createElement("td", {
+      className: "border-t"
+    }, " ", item.balance, " "));
+  }))));
+};
+
+exports.default = Invoices;
+
+/***/ }),
+
 /***/ "./resources/js/app.tsx":
 /*!******************************!*\
   !*** ./resources/js/app.tsx ***!
@@ -33179,17 +33232,32 @@ if (false) {} else {
 /*!*******************************************!*\
   !*** ./resources/js/Pages/ sync ^\.\/.*$ ***!
   \*******************************************/
-/***/ ((module) => {
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-function webpackEmptyContext(req) {
-	var e = new Error("Cannot find module '" + req + "'");
-	e.code = 'MODULE_NOT_FOUND';
-	throw e;
+var map = {
+	"./Invoices/Index": "./resources/js/Pages/Invoices/Index.tsx",
+	"./Invoices/Index.tsx": "./resources/js/Pages/Invoices/Index.tsx"
+};
+
+
+function webpackContext(req) {
+	var id = webpackContextResolve(req);
+	return __webpack_require__(id);
 }
-webpackEmptyContext.keys = () => ([]);
-webpackEmptyContext.resolve = webpackEmptyContext;
-webpackEmptyContext.id = "./resources/js/Pages sync recursive ^\\.\\/.*$";
-module.exports = webpackEmptyContext;
+function webpackContextResolve(req) {
+	if(!__webpack_require__.o(map, req)) {
+		var e = new Error("Cannot find module '" + req + "'");
+		e.code = 'MODULE_NOT_FOUND';
+		throw e;
+	}
+	return map[req];
+}
+webpackContext.keys = function webpackContextKeys() {
+	return Object.keys(map);
+};
+webpackContext.resolve = webpackContextResolve;
+module.exports = webpackContext;
+webpackContext.id = "./resources/js/Pages sync recursive ^\\.\\/.*$";
 
 /***/ })
 
