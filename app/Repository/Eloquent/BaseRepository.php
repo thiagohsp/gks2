@@ -4,6 +4,7 @@ namespace App\Repository\Eloquent;
 
 use App\Repository\EloquentRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\Paginator;
@@ -43,9 +44,9 @@ class BaseRepository implements EloquentRepositoryInterface
      * @param array $relations
 	 * @return \Illuminate\Pagination\Paginator
 	 */
-	public function paginate(int $perPage = 20, array $columns = ['*'], array $relations = []): LengthAwarePaginator
+	public function paginate(int $perPage = 10, array $columns = ['*'], array $relations = []): LengthAwarePaginator
 	{
-		return $this->model->with($relations)->paginate($perPage, $columns);
+		return $this->model->with($relations)->latest('number')->paginate($perPage, $columns);
 	}
 
 
@@ -169,6 +170,10 @@ class BaseRepository implements EloquentRepositoryInterface
      */
     public function firstOrNew(array $attributes = [], array $values = []): Model
     {
-        return $this->model->query()->firstOrNew($attributes, $values);
+        return $this->query()->firstOrNew($attributes, $values);
+    }
+
+    public function query(): Builder {
+        return $this->model->query();
     }
 }

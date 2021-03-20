@@ -36,6 +36,13 @@ class Invoice extends Model
         'operation'
     ];
 
+    protected $casts = [
+        'date' => 'datetime',
+        'value' => 'float',
+        'balance' => 'float',
+        'cfop' => 'integer'
+    ];
+
     public function customer() {
         return $this->belongsTo(Customer::class, 'customer_id', 'id');
     }
