@@ -1,0 +1,29 @@
+import React, { InputHTMLAttributes } from 'react';
+
+interface TextInputProps extends InputHTMLAttributes<HTMLInputElement>{
+    label: string;
+    name: string;
+    className: string;
+    errors: []
+}
+
+const TextInput : React.FC<TextInputProps> = ({ label, name, className, errors = [], ...props }) => {
+  return (
+    <div className={className}>
+      {label && (
+        <label className="form-label" htmlFor={name}>
+          {label}:
+        </label>
+      )}
+      <input
+        id={name}
+        name={name}
+        {...props}
+        className={`form-input ${errors.length ? 'error' : ''}`}
+      />
+      {errors && <div className="form-error">{errors}</div>}
+    </div>
+  );
+};
+
+export default TextInput;

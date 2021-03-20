@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator as Paginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 
@@ -105,4 +106,10 @@ interface EloquentRepositoryInterface
      * @return bool
      */
     public function permanentlyDeleteById(string $modelId): bool;
+
+    /**
+     * Returns a model Query Builder
+     * @return Builder
+     */
+    public function query(): Builder;
 }

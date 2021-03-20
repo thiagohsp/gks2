@@ -30,6 +30,10 @@ class Customer extends Model
         'customer_balance'
     ];
 
+    protected $casts = [
+        'customer_balance' => 'float'
+    ];
+
     public function invoices() {
         return $this->hasMany(Invoice::class, 'customer_id', 'id');
     }
