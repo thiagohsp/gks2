@@ -1,5 +1,5 @@
 import React, { MouseEventHandler, PropsWithChildren, ReactElement, useMemo } from 'react';
-import { Column, Row, TableInstance, TableOptions, useRowSelect, useSortBy, useTable } from "react-table";
+import { Column, Row, TableInstance, TableOptions, usePagination, useRowSelect, useSortBy, useTable } from "react-table";
 import { Pagination } from '../../Pagination';
 import { TableContainer, Td, Th, Tr, TrHead } from "./styles";
 import { TablePagination } from './TablePagination';
@@ -9,11 +9,6 @@ import processColumns from "./utils";
 export interface TableProperties<T extends Record<string, unknown>> extends TableOptions<T> {
     name: string;
     hideHeaders?: boolean;
-    links: Array<{
-        url: string;
-        label: string;
-        active: boolean;
-    }>;
     onAdd?: (instance: TableInstance<T>) => MouseEventHandler
     onDelete?: (instance: TableInstance<T>) => MouseEventHandler
     onEdit?: (instance: TableInstance<T>) => MouseEventHandler
@@ -46,7 +41,8 @@ export function Table<T extends Record<string, unknown>>(props: PropsWithChildre
         // @ts-ignore
         { columns, data, disableSortBy: !props.enableSorting },
         useSortBy,
-        useRowSelect
+        usePagination,
+        useRowSelect,
     );
 
     const {
@@ -55,8 +51,8 @@ export function Table<T extends Record<string, unknown>>(props: PropsWithChildre
         headerGroups,
         rows,
         prepareRow,
-        selectedFlatRows,
-        state: { selectedRowIds }
+        page, // Instead of using 'rows', we'll use page,
+        state: { selectedRowIds },
     } = instance;
 
     return (
@@ -89,39 +85,21 @@ export function Table<T extends Record<string, unknown>>(props: PropsWithChildre
                     </thead>
                 )}
 
-                {/* Apply the table body props */}
                 <tbody {...getTableBodyProps()}>
-                    {
-                        // Loop over the table rows
-                        rows.map((row: any) => {
-                            // Prepare the row for display
-                            prepareRow(row);
-                            return (
-                                // Apply the row props
-                                <Tr {...row.getRowProps()}>
-                                    {
-                                        // Loop over the rows cells
-                                        row.cells.map((cell: any) => {
-                                            // Apply the cell props
-                                            return (
-                                                <Td {...cell.getCellProps()}>
-                                                    {
-                                                        // Render the cell contents
-                                                        cell.render("Cell")
-                                                    }
-                                                </Td>
-                                            );
-                                        })
-                                    }
-                                </Tr>
-                            );
-                        })
-                    }
+                    {page.map((row, i) => {
+                        prepareRow(row)
+                        return (
+                            <Tr {...row.getRowProps()}>
+                                {row.cells.map(cell => {
+                                    return <Td {...cell.getCellProps()}>{cell.render('Cell')}</Td>
+                                })}
+                            </Tr>
+                        )
+                    })}
                 </tbody>
             </TableContainer>
-            { props.links && (
-                <Pagination links={props.links} />
-            )}
+
+            <TablePagination instance={instance} />
         </>
     );
 }
