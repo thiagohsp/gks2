@@ -19,11 +19,11 @@ class InvoiceController extends Controller
 
     public function index() {
         //dd(Auth::user());
-        $response = $this->invoiceRepository->paginate(10, ['*'], ['customer']);
-
+        $response = $this->invoiceRepository->query()->with('customer')->latest('number')->get();
+        //dd($response);
         return Inertia::render('Invoices/Index', [
-            'invoices' => $response->items(),
-            'links' => $response->jsonSerialize()['links']
+            'invoices' => $response
+
         ]);
         //return response()->json($this->invoiceRepository->paginate(20, ['*'], ['customer']), 200);
     }

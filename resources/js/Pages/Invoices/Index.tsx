@@ -273,7 +273,6 @@ const Index: React.FC<IPageProps> = (props) => {
                 <Table<Invoice>
                     //columns={columns}
                     name="teste"
-                    links={links}
                     columns={columns}
                     data={invoices}
                 />

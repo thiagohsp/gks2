@@ -5551,7 +5551,6 @@ var Index = function Index(props) {
   }, react_1["default"].createElement(__Table_1.Table, {
     //columns={columns}
     name: "teste",
-    links: links,
     columns: columns,
     data: invoices
   })));
@@ -6333,6 +6332,212 @@ exports.default = Select;
 
 /***/ }),
 
+/***/ "./resources/js/Shared/Components/__Table/TablePagination/index.tsx":
+/*!**************************************************************************!*\
+  !*** ./resources/js/Shared/Components/__Table/TablePagination/index.tsx ***!
+  \**************************************************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
+  if (k2 === undefined) k2 = k;
+  Object.defineProperty(o, k2, {
+    enumerable: true,
+    get: function get() {
+      return m[k];
+    }
+  });
+} : function (o, m, k, k2) {
+  if (k2 === undefined) k2 = k;
+  o[k2] = m[k];
+});
+
+var __setModuleDefault = this && this.__setModuleDefault || (Object.create ? function (o, v) {
+  Object.defineProperty(o, "default", {
+    enumerable: true,
+    value: v
+  });
+} : function (o, v) {
+  o["default"] = v;
+});
+
+var __importStar = this && this.__importStar || function (mod) {
+  if (mod && mod.__esModule) return mod;
+  var result = {};
+  if (mod != null) for (var k in mod) {
+    if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+  }
+
+  __setModuleDefault(result, mod);
+
+  return result;
+};
+
+var __importDefault = this && this.__importDefault || function (mod) {
+  return mod && mod.__esModule ? mod : {
+    "default": mod
+  };
+};
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.TablePagination = void 0;
+
+var react_1 = __importStar(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
+
+var react_select_1 = __importDefault(__webpack_require__(/*! react-select */ "./node_modules/react-select/dist/react-select.esm.js"));
+
+var styles_1 = __webpack_require__(/*! ./styles */ "./resources/js/Shared/Components/__Table/TablePagination/styles.tsx");
+
+var rowsPerPageOptions = [5, 10, 25, 50]; // a bit of a type hack to keep OverridableComponent working as desired
+
+function TablePagination(_a) {
+  var instance = _a.instance;
+  var _b = instance.state,
+      pageIndex = _b.pageIndex,
+      pageSize = _b.pageSize,
+      _c = _b.rowCount,
+      rowCount = _c === void 0 ? instance.rows.length : _c,
+      canPreviousPage = instance.canPreviousPage,
+      canNextPage = instance.canNextPage,
+      pageOptions = instance.pageOptions,
+      pageCount = instance.pageCount,
+      gotoPage = instance.gotoPage,
+      nextPage = instance.nextPage,
+      previousPage = instance.previousPage,
+      setPageSize = instance.setPageSize;
+  var handleChangePage = react_1.useCallback(function (event, newPage) {
+    if (newPage === pageIndex + 1) {
+      nextPage();
+    } else if (newPage === pageIndex - 1) {
+      previousPage();
+    } else {
+      gotoPage(newPage);
+    }
+  }, [gotoPage, nextPage, pageIndex, previousPage]);
+  var pageSizeOptions = react_1.useMemo(function () {
+    return [{
+      value: 10,
+      label: "Mostrar 10 registros"
+    }, {
+      value: 20,
+      label: "Mostrar 20 registros"
+    }, {
+      value: 30,
+      label: "Mostrar 30 registros"
+    }, {
+      value: 40,
+      label: "Mostrar 40 registros"
+    }, {
+      value: 50,
+      label: "Mostrar 50 registros"
+    }, {
+      value: 100,
+      label: "Mostrar 100 registros"
+    }];
+  }, []);
+  var onChangeRowsPerPage = react_1.useCallback(function (e) {
+    setPageSize(Number(e.target.value));
+  }, [setPageSize]);
+  var filterPages = react_1.useCallback(function (visiblePages, totalPages) {
+    return visiblePages.filter(function (page) {
+      return page <= totalPages;
+    });
+  }, []);
+  var getVisiblePages = react_1.useCallback(function (page, total) {
+    if (total < 7) {
+      return filterPages([1, 2, 3, 4, 5, 6], total);
+    } else {
+      if (page % 5 >= 0 && page > 4 && page + 2 < total) {
+        return [1, -1, page - 1, page, page + 1, -2, total];
+      } else if (page % 5 >= 0 && page > 4 && page + 2 >= total) {
+        return [1, -1, total - 3, total - 2, total - 1, total];
+      } else {
+        return [1, 2, 3, 4, 5, -2, total];
+      }
+    }
+  }, []);
+  return rowCount ? react_1["default"].createElement(react_1["default"].Fragment, null, react_1["default"].createElement(styles_1.Container, null, react_1["default"].createElement(styles_1.Button, {
+    onClick: function onClick() {
+      return previousPage();
+    },
+    disabled: !canPreviousPage
+  }, 'Anterior'), ' ', getVisiblePages(pageIndex + 1, pageOptions.length).map(function (page) {
+    return react_1["default"].createElement(styles_1.Button, {
+      key: page,
+      onClick: function onClick() {
+        return gotoPage(page - 1);
+      },
+      active: page === pageIndex + 1
+    }, page > 0 ? page : '...');
+  }), react_1["default"].createElement(styles_1.Button, {
+    onClick: function onClick() {
+      return nextPage();
+    },
+    disabled: !canNextPage
+  }, 'Próxima'), react_1["default"].createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, react_1["default"].createElement(react_select_1["default"], {
+    options: pageSizeOptions,
+    onChange: function onChange(e) {
+      setPageSize(e ? Number(e.value) : 10);
+    }
+  })))) : null;
+}
+
+exports.TablePagination = TablePagination;
+
+/***/ }),
+
+/***/ "./resources/js/Shared/Components/__Table/TablePagination/styles.tsx":
+/*!***************************************************************************!*\
+  !*** ./resources/js/Shared/Components/__Table/TablePagination/styles.tsx ***!
+  \***************************************************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var __makeTemplateObject = this && this.__makeTemplateObject || function (cooked, raw) {
+  if (Object.defineProperty) {
+    Object.defineProperty(cooked, "raw", {
+      value: raw
+    });
+  } else {
+    cooked.raw = raw;
+  }
+
+  return cooked;
+};
+
+var __importDefault = this && this.__importDefault || function (mod) {
+  return mod && mod.__esModule ? mod : {
+    "default": mod
+  };
+};
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.Button = exports.Container = void 0;
+
+var styled_components_1 = __importDefault(__webpack_require__(/*! styled-components */ "./node_modules/styled-components/dist/styled-components.browser.esm.js"));
+
+exports.Container = styled_components_1["default"].div(templateObject_1 || (templateObject_1 = __makeTemplateObject(["\n  display: flex;\n  margin: 8px 4px;\n  padding-bottom: 4px;\n"], ["\n  display: flex;\n  margin: 8px 4px;\n  padding-bottom: 4px;\n"])));
+exports.Button = styled_components_1["default"].button(templateObject_2 || (templateObject_2 = __makeTemplateObject(["\n  color: var(--dark-gray);\n  float: left;\n  padding: 8px 16px;\n  text-decoration: none;\n  transition: background-color .3s;\n  border: 1px solid ", ";\n  margin: 0 4px;\n  border-radius: 4px;\n  background-color: ", ";\n\n  &:hover {\n      background-color: var(--light-gray);\n      color: var(--dark-indigo)\n  }\n\n\n"], ["\n  color: var(--dark-gray);\n  float: left;\n  padding: 8px 16px;\n  text-decoration: none;\n  transition: background-color .3s;\n  border: 1px solid ", ";\n  margin: 0 4px;\n  border-radius: 4px;\n  background-color: ", ";\n\n  &:hover {\n      background-color: var(--light-gray);\n      color: var(--dark-indigo)\n  }\n\n\n"])), function (props) {
+  return props.active ? "var(--light-indigo)" : "var(--light-gray)";
+}, function (props) {
+  return props.active ? "var(--light-gray)" : "white";
+});
+var templateObject_1, templateObject_2;
+
+/***/ }),
+
 /***/ "./resources/js/Shared/Components/__Table/index.tsx":
 /*!**********************************************************!*\
   !*** ./resources/js/Shared/Components/__Table/index.tsx ***!
@@ -6407,9 +6612,9 @@ var react_1 = __importStar(__webpack_require__(/*! react */ "./node_modules/reac
 
 var react_table_1 = __webpack_require__(/*! react-table */ "./node_modules/react-table/index.js");
 
-var Pagination_1 = __webpack_require__(/*! ../../Pagination */ "./resources/js/Shared/Pagination.tsx");
-
 var styles_1 = __webpack_require__(/*! ./styles */ "./resources/js/Shared/Components/__Table/styles.ts");
+
+var TablePagination_1 = __webpack_require__(/*! ./TablePagination */ "./resources/js/Shared/Components/__Table/TablePagination/index.tsx");
 
 var utils_1 = __importDefault(__webpack_require__(/*! ./utils */ "./resources/js/Shared/Components/__Table/utils.tsx"));
 
@@ -6431,13 +6636,13 @@ function Table(props) {
     columns: columns,
     data: data,
     disableSortBy: !props.enableSorting
-  }, react_table_1.useSortBy, react_table_1.useRowSelect);
+  }, react_table_1.useSortBy, react_table_1.usePagination, react_table_1.useRowSelect);
   var getTableProps = instance.getTableProps,
       getTableBodyProps = instance.getTableBodyProps,
       headerGroups = instance.headerGroups,
       rows = instance.rows,
       prepareRow = instance.prepareRow,
-      selectedFlatRows = instance.selectedFlatRows,
+      page = instance.page,
       selectedRowIds = instance.state.selectedRowIds;
   return react_1["default"].createElement(react_1["default"].Fragment, null, react_1["default"].createElement(styles_1.TableContainer, __assign({}, getTableProps()), !props.hideHeaders && react_1["default"].createElement("thead", null, // Loop over the header rows
   headerGroups.map(function (headerGroup) {
@@ -6450,20 +6655,13 @@ function Table(props) {
         );
       }))
     );
-  })), react_1["default"].createElement("tbody", __assign({}, getTableBodyProps()), // Loop over the table rows
-  rows.map(function (row) {
-    // Prepare the row for display
+  })), react_1["default"].createElement("tbody", __assign({}, getTableBodyProps()), page.map(function (row, i) {
     prepareRow(row);
-    return (// Apply the row props
-      react_1["default"].createElement(styles_1.Tr, __assign({}, row.getRowProps()), // Loop over the rows cells
-      row.cells.map(function (cell) {
-        // Apply the cell props
-        return react_1["default"].createElement(styles_1.Td, __assign({}, cell.getCellProps()), // Render the cell contents
-        cell.render("Cell"));
-      }))
-    );
-  }))), props.links && react_1["default"].createElement(Pagination_1.Pagination, {
-    links: props.links
+    return react_1["default"].createElement(styles_1.Tr, __assign({}, row.getRowProps()), row.cells.map(function (cell) {
+      return react_1["default"].createElement(styles_1.Td, __assign({}, cell.getCellProps()), cell.render('Cell'));
+    }));
+  }))), react_1["default"].createElement(TablePagination_1.TablePagination, {
+    instance: instance
   }));
 }
 
@@ -6949,90 +7147,6 @@ var MainMenu = function MainMenu(_a) {
 
 exports.MainMenu = MainMenu;
 exports.default = exports.MainMenu;
-
-/***/ }),
-
-/***/ "./resources/js/Shared/Pagination.tsx":
-/*!********************************************!*\
-  !*** ./resources/js/Shared/Pagination.tsx ***!
-  \********************************************/
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var __importDefault = this && this.__importDefault || function (mod) {
-  return mod && mod.__esModule ? mod : {
-    "default": mod
-  };
-};
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.Pagination = void 0;
-
-var react_1 = __importDefault(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
-
-var inertia_react_1 = __webpack_require__(/*! @inertiajs/inertia-react */ "./node_modules/@inertiajs/inertia-react/dist/index.js");
-
-var classnames_1 = __importDefault(__webpack_require__(/*! classnames */ "./node_modules/classnames/index.js"));
-
-var PageLink = function PageLink(_a) {
-  var active = _a.active,
-      label = _a.label,
-      url = _a.url;
-  var className = classnames_1["default"](['my-2 mr-1', 'px-4 py-3', 'border border-solid border-gray-400 rounded', 'text-sm', 'hover:bg-gray-300', 'focus:outline-none focus:border-indigo-700 focus:text-indigo-700'], {
-    'bg-gray-400': active
-  });
-  return react_1["default"].createElement(inertia_react_1.InertiaLink, {
-    className: className,
-    href: url
-  }, react_1["default"].createElement("span", {
-    dangerouslySetInnerHTML: {
-      __html: label
-    }
-  }));
-}; // Previous, if on first page
-// Next, if on last page
-// and dots, if exists (...)
-
-
-var PageInactive = function PageInactive(_a) {
-  var label = _a.label;
-  var className = classnames_1["default"]('my-2 mr-1 px-4 py-3 text-sm border rounded border-solid border-gray-300 text-gray');
-  return react_1["default"].createElement("div", {
-    className: className,
-    dangerouslySetInnerHTML: {
-      __html: label
-    }
-  });
-};
-
-var Pagination = function Pagination(_a) {
-  var _b = _a.links,
-      links = _b === void 0 ? [] : _b; // dont render, if there's only 1 page (previous, 1, next)
-
-  if (links.length === 3) return null;
-  return react_1["default"].createElement("div", {
-    className: "flex flex-wrap mx-2"
-  }, links.map(function (_a) {
-    var active = _a.active,
-        label = _a.label,
-        url = _a.url;
-    return url === null ? react_1["default"].createElement(PageInactive, {
-      key: label,
-      label: label
-    }) : react_1["default"].createElement(PageLink, {
-      key: label,
-      label: label,
-      active: active,
-      url: url
-    });
-  }));
-};
-
-exports.Pagination = Pagination;
 
 /***/ }),
 
