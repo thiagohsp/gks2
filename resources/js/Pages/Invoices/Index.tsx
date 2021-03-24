@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Table } from "../../Shared/Components/__Table";
 import { Layout } from "../../Shared/Layout";
 import { Pagination } from "../../Shared/Pagination";
@@ -85,7 +85,8 @@ const Index: React.FC<IPageProps> = (props) => {
     }>>([]);
     const [startDate, setStartDate] = useState(new Date());
     const [clientes, setClientes] = useState<ICliente[]>([]);
-    const formRef = useRef<FormHandles>(null)
+    const formFiltroRef = useRef<FormHandles>(null);
+    const formLoteRef = useRef<FormHandles>(null);
 
     useEffect(() => {
         setInvoices(props.invoices);
@@ -122,7 +123,23 @@ const Index: React.FC<IPageProps> = (props) => {
         });
     }
 
-    const columns: Array<Column<Invoice>> = [
+    const handleSubmitLote: SubmitHandler<FormData> = data => {
+        console.log(data);
+        axios.get('api/invoices', {
+            params: {
+                customer_id: data.customer,
+                data_ini: data.data_ini,
+                data_fin: data.data_fin,
+                nf_ini: data.nf_ini,
+                nf_fin: data.nf_fin,
+            }
+        }).then((response) => {
+            setInvoices(response.data.data);
+            setLinks(response.data.links);
+        });
+    }
+
+    const columns: Array<Column<Invoice>> = useMemo(() => [
         {
             Header: 'Número',
             accessor: 'number'
@@ -155,9 +172,23 @@ const Index: React.FC<IPageProps> = (props) => {
             Header: () => (
                 <div style={{ textAlign: "right" }}>Saldo</div>)
         }
-    ];
+    ], []);
 
     const title = 'Lista de Notas Fiscais';
+
+    const [selectedRows, setSelectedRows] = React.useState<any[]>([{}]);
+    const [totalSaldoSelecionado, setTotalSaldoSelecionado] = React.useState(0);
+
+    React.useEffect(() => {
+        if (selectedRows.length > 0) {
+            const valorCalculado = selectedRows.reduce((acc, cur) => {
+                return { balance: acc.balance + cur.balance };
+            });
+            setTotalSaldoSelecionado(valorCalculado.balance);
+        } else {
+            setTotalSaldoSelecionado(0);
+        }
+    }, [selectedRows])
 
     return (
         <Layout title={title}>
@@ -171,28 +202,31 @@ const Index: React.FC<IPageProps> = (props) => {
                 </button>
             </div>
 
-            <Form ref={formRef} onSubmit={handleSubmit} >
+            <Form ref={formFiltroRef} onSubmit={handleSubmit} >
                 <div className="bg-white rounded shadow p-2 mb-8">
                     <div className="mx-2 flex">
                         <div className="flex-1 mr-1">
-                            <label htmlFor="customer">Clientes</label>
+                            <label htmlFor="customer" className="mb-2">Clientes</label>
                             <Select
+                                className="mt-1"
                                 name="customer"
                                 options={clientes}
                             />
                         </div>
 
                         <div className="w-1/4 px-1">
-                            <label htmlFor="customer">Clientes</label>
+                            <label htmlFor="agente" className="mb-2">Agente</label>
                             <Select
+                                className="mt-1"
                                 name="agente"
                                 options={clientes}
                             />
                         </div>
 
                         <div className="w-1/4 pl-1">
-                            <label htmlFor="customer">Clientes</label>
+                            <label htmlFor="agente2">Agente 2</label>
                             <Select
+                                className="mt-1"
                                 name="agente2"
                                 options={clientes}
                             />
@@ -275,7 +309,61 @@ const Index: React.FC<IPageProps> = (props) => {
                     name="teste"
                     columns={columns}
                     data={invoices}
+                    setSelectedRows={setSelectedRows}
                 />
+            </div>
+
+            <div className="my-4 bg-white rounded shadow">
+                <h1 className="mb-1 text-xl font-bold p-4">Dados do Lote</h1>
+                <Form ref={formLoteRef} onSubmit={handleSubmitLote} className="flex flex-col flex-1 w-full ">
+                    <div className="mx-2 flex flex-auto space-x-2 justify-items-stretch items-end pb-4">
+                        <Input
+                            name="email"
+                            label="E-mail"
+                            style={{ flex: "auto" }}
+                        />
+                        <Input
+                            name="codigo_lote"
+                            label="Código do Lote"
+                            style={{ flex: "auto" }}
+                        />
+                        <NumberInput
+                            prefix={'R$ '}
+                            name="total_lote"
+                            label="Valor Total do Lote"
+                            style={{ flex: "auto" }}
+                        />
+                        <NumberInput
+                            prefix={'R$ '}
+                            name="valor_maximo_cobranca"
+                            label="Valor Máximo Cobrança"
+                            style={{ flex: "auto" }}
+                        />
+                    </div>
+                    <div className="mx-2 flex space-x-2 justify-items-stretch items-end pb-4">
+                        <DatePicker
+                            name="data_vencimento"
+                            label="Data de Vencimento"
+                            className="flex-auto"
+                        />
+                        <NumberInput
+                            prefix={'R$ '}
+                            name="totalSelecionado"
+                            label="Total Selecionado"
+                            disabled
+                            value={totalSaldoSelecionado}
+                            className="flex-auto"
+                        />
+                        <div className="flex-1">
+                            <button
+                                type="submit"
+                                className="bg-green-500 hover:bg-green-700 text-white font-bold py-2.5 px-4 rounded inline-flex items-center" >
+                                <FiFilter size={18}></FiFilter>
+                                <span className="ml-2">Gerar Lote</span>
+                            </button>
+                        </div>
+                    </div>
+                </Form>
             </div>
 
         </Layout>

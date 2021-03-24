@@ -5356,7 +5356,8 @@ var Index = function Index(props) {
       clientes = _d[0],
       setClientes = _d[1];
 
-  var formRef = react_1.useRef(null);
+  var formFiltroRef = react_1.useRef(null);
+  var formLoteRef = react_1.useRef(null);
   react_1.useEffect(function () {
     setInvoices(props.invoices);
     setLinks(props.links);
@@ -5391,65 +5392,88 @@ var Index = function Index(props) {
     });
   };
 
-  var columns = [{
-    Header: 'Número',
-    accessor: 'number'
-  }, {
-    Header: 'Data',
-    accessor: function accessor(d) {
-      return date_fns_1.format(date_fns_1.parseISO(d.date), "dd/MM/yyyy");
-    }
-  }, {
-    Header: 'Cliente',
-    id: 'customer-socialname',
-    accessor: function accessor(row) {
-      return row.customer.social_name;
-    }
-  }, {
-    Header: 'Cidade',
-    accessor: function accessor(row) {
-      return row.customer.adress_city + "/" + row.customer.adress_state;
-    }
-  }, {
-    accessor: 'value',
-    Cell: function Cell(props) {
-      return react_1["default"].createElement("div", {
-        style: {
-          textAlign: "right"
-        }
-      }, props.value.toLocaleString('pt-BR', {
-        style: 'currency',
-        currency: 'BRL'
-      }));
-    },
-    Header: function Header() {
-      return react_1["default"].createElement("div", {
-        style: {
-          textAlign: "right"
-        }
-      }, "Valor");
-    }
-  }, {
-    accessor: 'balance',
-    Cell: function Cell(props) {
-      return react_1["default"].createElement("div", {
-        style: {
-          textAlign: "right"
-        }
-      }, props.value.toLocaleString('pt-BR', {
-        style: 'currency',
-        currency: 'BRL'
-      }));
-    },
-    Header: function Header() {
-      return react_1["default"].createElement("div", {
-        style: {
-          textAlign: "right"
-        }
-      }, "Saldo");
-    }
-  }];
+  var columns = react_1.useMemo(function () {
+    return [{
+      Header: 'Número',
+      accessor: 'number'
+    }, {
+      Header: 'Data',
+      accessor: function accessor(d) {
+        return date_fns_1.format(date_fns_1.parseISO(d.date), "dd/MM/yyyy");
+      }
+    }, {
+      Header: 'Cliente',
+      id: 'customer-socialname',
+      accessor: function accessor(row) {
+        return row.customer.social_name;
+      }
+    }, {
+      Header: 'Cidade',
+      accessor: function accessor(row) {
+        return row.customer.adress_city + "/" + row.customer.adress_state;
+      }
+    }, {
+      accessor: 'value',
+      Cell: function Cell(props) {
+        return react_1["default"].createElement("div", {
+          style: {
+            textAlign: "right"
+          }
+        }, props.value.toLocaleString('pt-BR', {
+          style: 'currency',
+          currency: 'BRL'
+        }));
+      },
+      Header: function Header() {
+        return react_1["default"].createElement("div", {
+          style: {
+            textAlign: "right"
+          }
+        }, "Valor");
+      }
+    }, {
+      accessor: 'balance',
+      Cell: function Cell(props) {
+        return react_1["default"].createElement("div", {
+          style: {
+            textAlign: "right"
+          }
+        }, props.value.toLocaleString('pt-BR', {
+          style: 'currency',
+          currency: 'BRL'
+        }));
+      },
+      Header: function Header() {
+        return react_1["default"].createElement("div", {
+          style: {
+            textAlign: "right"
+          }
+        }, "Saldo");
+      }
+    }];
+  }, []);
   var title = 'Lista de Notas Fiscais';
+
+  var _e = react_1["default"].useState([{}]),
+      selectedRows = _e[0],
+      setSelectedRows = _e[1];
+
+  var _f = react_1["default"].useState(0),
+      totalSaldoSelecionado = _f[0],
+      setTotalSaldoSelecionado = _f[1];
+
+  react_1["default"].useEffect(function () {
+    if (selectedRows.length > 0) {
+      var valorCalculado = selectedRows.reduce(function (acc, cur) {
+        return {
+          balance: acc.balance + cur.balance
+        };
+      });
+      setTotalSaldoSelecionado(valorCalculado.balance);
+    } else {
+      setTotalSaldoSelecionado(0);
+    }
+  }, [selectedRows]);
   return react_1["default"].createElement(Layout_1.Layout, {
     title: title
   }, react_1["default"].createElement("div", {
@@ -5464,7 +5488,7 @@ var Index = function Index(props) {
   }), react_1["default"].createElement("span", {
     className: "ml-2"
   }, "Filtro"))), react_1["default"].createElement(web_1.Form, {
-    ref: formRef,
+    ref: formFiltroRef,
     onSubmit: handleSubmit
   }, react_1["default"].createElement("div", {
     className: "bg-white rounded shadow p-2 mb-8"
@@ -5473,22 +5497,27 @@ var Index = function Index(props) {
   }, react_1["default"].createElement("div", {
     className: "flex-1 mr-1"
   }, react_1["default"].createElement("label", {
-    htmlFor: "customer"
+    htmlFor: "customer",
+    className: "mb-2"
   }, "Clientes"), react_1["default"].createElement(Select_1["default"], {
+    className: "mt-1",
     name: "customer",
     options: clientes
   })), react_1["default"].createElement("div", {
     className: "w-1/4 px-1"
   }, react_1["default"].createElement("label", {
-    htmlFor: "customer"
-  }, "Clientes"), react_1["default"].createElement(Select_1["default"], {
+    htmlFor: "agente",
+    className: "mb-2"
+  }, "Agente"), react_1["default"].createElement(Select_1["default"], {
+    className: "mt-1",
     name: "agente",
     options: clientes
   })), react_1["default"].createElement("div", {
     className: "w-1/4 pl-1"
   }, react_1["default"].createElement("label", {
-    htmlFor: "customer"
-  }, "Clientes"), react_1["default"].createElement(Select_1["default"], {
+    htmlFor: "agente2"
+  }, "Agente 2"), react_1["default"].createElement(Select_1["default"], {
+    className: "mt-1",
     name: "agente2",
     options: clientes
   }))), react_1["default"].createElement("div", {
@@ -5552,8 +5581,67 @@ var Index = function Index(props) {
     //columns={columns}
     name: "teste",
     columns: columns,
-    data: invoices
-  })));
+    data: invoices,
+    setSelectedRows: setSelectedRows
+  })), react_1["default"].createElement("div", {
+    className: "my-4 bg-white rounded shadow"
+  }, react_1["default"].createElement("h1", {
+    className: "mb-1 text-xl font-bold p-4"
+  }, "Dados do Lote"), react_1["default"].createElement(web_1.Form, {
+    ref: formLoteRef,
+    onSubmit: handleSubmit,
+    className: "flex flex-col flex-1 w-full "
+  }, react_1["default"].createElement("div", {
+    className: "mx-2 flex flex-auto space-x-2 justify-items-stretch items-end pb-4"
+  }, react_1["default"].createElement(Input_1["default"], {
+    name: "email",
+    label: "E-mail",
+    style: {
+      flex: "auto"
+    }
+  }), react_1["default"].createElement(Input_1["default"], {
+    name: "codigo_lote",
+    label: "C\xF3digo do Lote",
+    style: {
+      flex: "auto"
+    }
+  }), react_1["default"].createElement(NumberInput_1["default"], {
+    prefix: 'R$ ',
+    name: "total_lote",
+    label: "Valor Total do Lote",
+    style: {
+      flex: "auto"
+    }
+  }), react_1["default"].createElement(NumberInput_1["default"], {
+    prefix: 'R$ ',
+    name: "valor_maximo_cobranca",
+    label: "Valor M\xE1ximo Cobran\xE7a",
+    style: {
+      flex: "auto"
+    }
+  })), react_1["default"].createElement("div", {
+    className: "mx-2 flex space-x-2 justify-items-stretch items-end pb-4"
+  }, react_1["default"].createElement(DatePicker_1["default"], {
+    name: "data_vencimento",
+    label: "Data de Vencimento",
+    className: "flex-auto"
+  }), react_1["default"].createElement(NumberInput_1["default"], {
+    prefix: 'R$ ',
+    name: "totalSelecionado",
+    label: "Total Selecionado",
+    disabled: true,
+    value: totalSaldoSelecionado,
+    className: "flex-auto"
+  }), react_1["default"].createElement("div", {
+    className: "flex-1"
+  }, react_1["default"].createElement("button", {
+    type: "submit",
+    className: "bg-green-500 hover:bg-green-700 text-white font-bold py-2.5 px-4 rounded inline-flex items-center"
+  }, react_1["default"].createElement(fi_1.FiFilter, {
+    size: 18
+  }), react_1["default"].createElement("span", {
+    className: "ml-2"
+  }, "Gerar Lote")))))));
 };
 
 exports.default = Index;
@@ -6597,6 +6685,14 @@ var __importStar = this && this.__importStar || function (mod) {
   return result;
 };
 
+var __spreadArray = this && this.__spreadArray || function (to, from) {
+  for (var i = 0, il = from.length, j = to.length; i < il; i++, j++) {
+    to[j] = from[i];
+  }
+
+  return to;
+};
+
 var __importDefault = this && this.__importDefault || function (mod) {
   return mod && mod.__esModule ? mod : {
     "default": mod
@@ -6625,6 +6721,42 @@ function Table(props) {
    * every render and attempt to recalulate a lot of logic every single
    * time. Not cool!
    */
+  var selectionHook = function selectionHook(hooks) {
+    hooks.allColumns.push(function (columns) {
+      return __spreadArray([// Let's make a column for selection
+      {
+        id: '_selector',
+        disableResizing: false,
+        disableGroupBy: true,
+        minWidth: 5,
+        width: 5,
+        maxWidth: 5,
+        // The header can use the table's getToggleAllRowsSelectedProps method
+        // to render a checkbox
+        Header: function Header(_a) {
+          var getToggleAllRowsSelectedProps = _a.getToggleAllRowsSelectedProps;
+          return react_1["default"].createElement(styles_1.HeaderCheckbox, __assign({
+            width: 5
+          }, getToggleAllRowsSelectedProps()));
+        },
+        // The cell can use the individual row's getToggleRowSelectedProps method
+        // to the render a checkbox
+        Cell: function Cell(_a) {
+          var row = _a.row;
+          return react_1["default"].createElement(styles_1.RowCheckbox, __assign({
+            width: 5
+          }, row.getToggleRowSelectedProps()));
+        }
+      }], columns);
+    });
+    hooks.useInstanceBeforeDimensions.push(function (_a) {
+      var headerGroups = _a.headerGroups; // fix the parent group of the selection button to not be resizable
+
+      var selectionGroupHeader = headerGroups[0].headers[0];
+      selectionGroupHeader.canResize = false;
+    });
+  };
+
   var data = react_1.useMemo(function () {
     return props.data;
   }, [props.data]);
@@ -6636,14 +6768,24 @@ function Table(props) {
     columns: columns,
     data: data,
     disableSortBy: !props.enableSorting
-  }, react_table_1.useSortBy, react_table_1.usePagination, react_table_1.useRowSelect);
+  }, react_table_1.useSortBy, react_table_1.usePagination, react_table_1.useRowSelect, selectionHook);
   var getTableProps = instance.getTableProps,
       getTableBodyProps = instance.getTableBodyProps,
       headerGroups = instance.headerGroups,
       rows = instance.rows,
       prepareRow = instance.prepareRow,
       page = instance.page,
+      // Instead of using 'rows', we'll use page,
+  selectedFlatRows = instance.selectedFlatRows,
       selectedRowIds = instance.state.selectedRowIds;
+  react_1["default"].useEffect(function () {
+    if (props.setSelectedRows !== undefined) {
+      var selectedRows = selectedFlatRows.map(function (item) {
+        return item.original;
+      });
+      props.setSelectedRows(selectedRows);
+    }
+  }, [props.setSelectedRows, selectedFlatRows]);
   return react_1["default"].createElement(react_1["default"].Fragment, null, react_1["default"].createElement(styles_1.TableContainer, __assign({}, getTableProps()), !props.hideHeaders && react_1["default"].createElement("thead", null, // Loop over the header rows
   headerGroups.map(function (headerGroup) {
     return (// Apply the header row props
@@ -6703,17 +6845,23 @@ var __importDefault = this && this.__importDefault || function (mod) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.TrHead = exports.Tr = exports.Td = exports.Th = exports.TableContainer = void 0;
+exports.RowCheckbox = exports.HeaderCheckbox = exports.TrHead = exports.Tr = exports.Td = exports.Th = exports.TableContainer = void 0;
 
 var styled_components_1 = __importDefault(__webpack_require__(/*! styled-components */ "./node_modules/styled-components/dist/styled-components.browser.esm.js")); // <table>
 
 
 exports.TableContainer = styled_components_1["default"].table(templateObject_1 || (templateObject_1 = __makeTemplateObject(["\n  /* enable scroll on small width */\n  //display: block;\n  width: 100%;\n  border-collapse: collapse;\n"], ["\n  /* enable scroll on small width */\n  //display: block;\n  width: 100%;\n  border-collapse: collapse;\n"])));
-exports.Th = styled_components_1["default"].th(templateObject_2 || (templateObject_2 = __makeTemplateObject(["\n  min-width: 142px;\n  padding: 12px;\n  border-bottom: 2px solid #cbd5e0;\n  font-size: 1rem;\n  text-align: left;\n"], ["\n  min-width: 142px;\n  padding: 12px;\n  border-bottom: 2px solid #cbd5e0;\n  font-size: 1rem;\n  text-align: left;\n"])));
+exports.Th = styled_components_1["default"].th(templateObject_2 || (templateObject_2 = __makeTemplateObject(["\n  //min-width: 142px;\n  padding: 12px;\n  border-bottom: 2px solid #cbd5e0;\n  font-size: 1rem;\n  text-align: left;\n"], ["\n  //min-width: 142px;\n  padding: 12px;\n  border-bottom: 2px solid #cbd5e0;\n  font-size: 1rem;\n  text-align: left;\n"])));
 exports.Td = styled_components_1["default"].td(templateObject_3 || (templateObject_3 = __makeTemplateObject(["\n  padding: 10px;\n  text-align: left;\n  &:nth-of-type(1) {\n    text-align: left;\n    /* make first column body sticky */\n    left: 0;\n    position: sticky;\n  }\n\n"], ["\n  padding: 10px;\n  text-align: left;\n  &:nth-of-type(1) {\n    text-align: left;\n    /* make first column body sticky */\n    left: 0;\n    position: sticky;\n  }\n\n"])));
 exports.Tr = styled_components_1["default"].tr(templateObject_4 || (templateObject_4 = __makeTemplateObject(["\n  &:nth-of-type(odd) td {\n    background-color: #F8F8FF;\n  }\n  &:nth-of-type(even) td {\n    background-color: #F5F5F5;\n  }\n"], ["\n  &:nth-of-type(odd) td {\n    background-color: #F8F8FF;\n  }\n  &:nth-of-type(even) td {\n    background-color: #F5F5F5;\n  }\n"])));
 exports.TrHead = styled_components_1["default"].tr(templateObject_5 || (templateObject_5 = __makeTemplateObject(["\n  padding: 0px 27px;\n"], ["\n  padding: 0px 27px;\n"])));
-var templateObject_1, templateObject_2, templateObject_3, templateObject_4, templateObject_5;
+exports.HeaderCheckbox = styled_components_1["default"].input.attrs({
+  type: 'checkbox'
+})(templateObject_6 || (templateObject_6 = __makeTemplateObject(["\n      background-color: #000;\n      font-size: '1rem';\n      &:hover {\n        background-color: 'transparent';\n      };\n"], ["\n      background-color: #000;\n      font-size: '1rem';\n      &:hover {\n        background-color: 'transparent';\n      };\n"])));
+exports.RowCheckbox = styled_components_1["default"].input.attrs({
+  type: 'checkbox'
+})(templateObject_7 || (templateObject_7 = __makeTemplateObject(["\n      background-color: #000;\n      font-size: '1rem';\n      &:hover {\n        background-color: 'transparent';\n      };\n"], ["\n      background-color: #000;\n      font-size: '1rem';\n      &:hover {\n        background-color: 'transparent';\n      };\n"])));
+var templateObject_1, templateObject_2, templateObject_3, templateObject_4, templateObject_5, templateObject_6, templateObject_7;
 
 /***/ }),
 

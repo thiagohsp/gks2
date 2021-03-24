@@ -7,6 +7,9 @@ import 'react-datepicker/dist/react-datepicker.css';
 
 interface Props extends Omit<NumberFormatProps, 'onChange'> {
     name: string;
+    value?: number;
+    disabled?: boolean;
+    defaultValue?: number;
     label?: string;
 }
 export default function NumberInput({ name, label, ...rest }: Props) {
