@@ -9,7 +9,7 @@ export const TableContainer = styled.table`
 `;
 
 export const Th = styled.th`
-  min-width: 142px;
+  //min-width: 142px;
   padding: 12px;
   border-bottom: 2px solid #cbd5e0;
   font-size: 1rem;
@@ -40,3 +40,20 @@ export const Tr = styled.tr`
 export const TrHead = styled.tr`
   padding: 0px 27px;
 `;
+
+export const HeaderCheckbox = styled.input.attrs({ type: 'checkbox' })`
+      background-color: #000;
+      font-size: '1rem';
+      &:hover {
+        background-color: 'transparent';
+      };
+`;
+
+export const RowCheckbox = styled.input.attrs({ type: 'checkbox' })`
+      background-color: #000;
+      font-size: '1rem';
+      &:hover {
+        background-color: 'transparent';
+      };
+`;
+
