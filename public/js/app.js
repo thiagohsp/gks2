@@ -5356,6 +5356,10 @@ var Index = function Index(props) {
       clientes = _d[0],
       setClientes = _d[1];
 
+  var _e = react_1.useState([]),
+      contasCorrentes = _e[0],
+      setContasCorrentes = _e[1];
+
   var formFiltroRef = react_1.useRef(null);
   var formLoteRef = react_1.useRef(null);
   react_1.useEffect(function () {
@@ -5375,6 +5379,22 @@ var Index = function Index(props) {
       setClientes(mappedData);
     });
   }, []);
+  react_1.useEffect(function () {
+    axios_1["default"].get('api/accounts').then(function (response) {
+      var _a;
+
+      var mappedData = (_a = response === null || response === void 0 ? void 0 : response.data) === null || _a === void 0 ? void 0 : _a.filter(function (item) {
+        console.log(item.active && item.allow_pjbank_bills);
+        return item.active && item.allow_pjbank_bills;
+      }).map(function (data) {
+        return __assign(__assign({}, data), {
+          value: data.codigo_conta_corrente_maino,
+          label: data.bank_number + " - " + data.bank_name.toUpperCase() + " | " + data.agency + " | " + data.account + " | " + data.label
+        });
+      });
+      setContasCorrentes(mappedData);
+    });
+  }, []);
 
   var handleSubmit = function handleSubmit(data) {
     console.log(data);
@@ -5390,6 +5410,14 @@ var Index = function Index(props) {
       setInvoices(response.data.data);
       setLinks(response.data.links);
     });
+  };
+
+  var handleSubmitLote = function handleSubmitLote(formData) {
+    var requestData = __assign(__assign({}, formData), {
+      notas_fiscais: selectedRows
+    });
+
+    console.log(requestData);
   };
 
   var columns = react_1.useMemo(function () {
@@ -5454,13 +5482,13 @@ var Index = function Index(props) {
   }, []);
   var title = 'Lista de Notas Fiscais';
 
-  var _e = react_1["default"].useState([{}]),
-      selectedRows = _e[0],
-      setSelectedRows = _e[1];
+  var _f = react_1["default"].useState([{}]),
+      selectedRows = _f[0],
+      setSelectedRows = _f[1];
 
-  var _f = react_1["default"].useState(0),
-      totalSaldoSelecionado = _f[0],
-      setTotalSaldoSelecionado = _f[1];
+  var _g = react_1["default"].useState(0),
+      totalSaldoSelecionado = _g[0],
+      setTotalSaldoSelecionado = _g[1];
 
   react_1["default"].useEffect(function () {
     if (selectedRows.length > 0) {
@@ -5589,22 +5617,20 @@ var Index = function Index(props) {
     className: "mb-1 text-xl font-bold p-4"
   }, "Dados do Lote"), react_1["default"].createElement(web_1.Form, {
     ref: formLoteRef,
-    onSubmit: handleSubmit,
+    onSubmit: handleSubmitLote,
     className: "flex flex-col flex-1 w-full "
   }, react_1["default"].createElement("div", {
     className: "mx-2 flex flex-auto space-x-2 justify-items-stretch items-end pb-4"
   }, react_1["default"].createElement(Input_1["default"], {
-    name: "email",
-    label: "E-mail",
-    style: {
-      flex: "auto"
-    }
-  }), react_1["default"].createElement(Input_1["default"], {
     name: "codigo_lote",
     label: "C\xF3digo do Lote",
     style: {
       flex: "auto"
     }
+  }), react_1["default"].createElement(DatePicker_1["default"], {
+    name: "data_vencimento",
+    label: "Data de Vencimento",
+    className: "flex-auto"
   }), react_1["default"].createElement(NumberInput_1["default"], {
     prefix: 'R$ ',
     name: "total_lote",
@@ -5619,12 +5645,6 @@ var Index = function Index(props) {
     style: {
       flex: "auto"
     }
-  })), react_1["default"].createElement("div", {
-    className: "mx-2 flex space-x-2 justify-items-stretch items-end pb-4"
-  }, react_1["default"].createElement(DatePicker_1["default"], {
-    name: "data_vencimento",
-    label: "Data de Vencimento",
-    className: "flex-auto"
   }), react_1["default"].createElement(NumberInput_1["default"], {
     prefix: 'R$ ',
     name: "totalSelecionado",
@@ -5632,8 +5652,26 @@ var Index = function Index(props) {
     disabled: true,
     value: totalSaldoSelecionado,
     className: "flex-auto"
+  })), react_1["default"].createElement("div", {
+    className: "mx-2 flex space-x-2 justify-items-stretch items-end pb-4"
+  }, react_1["default"].createElement(Input_1["default"], {
+    className: "flex-1",
+    name: "email",
+    label: "E-mail",
+    style: {
+      flex: "auto"
+    }
   }), react_1["default"].createElement("div", {
     className: "flex-1"
+  }, react_1["default"].createElement("label", {
+    htmlFor: "agente",
+    className: "mb-2"
+  }, "Conta Corrente"), react_1["default"].createElement(Select_1["default"], {
+    className: "mt-1",
+    name: "conta_corrente",
+    options: contasCorrentes
+  })), react_1["default"].createElement("div", {
+    className: ""
   }, react_1["default"].createElement("button", {
     type: "submit",
     className: "bg-green-500 hover:bg-green-700 text-white font-bold py-2.5 px-4 rounded inline-flex items-center"
@@ -6209,21 +6247,23 @@ function NumberInput(_a) {
 
   var _b = core_1.useField(name),
       fieldName = _b.fieldName,
-      registerField = _b.registerField,
       defaultValue = _b.defaultValue,
+      registerField = _b.registerField,
       error = _b.error;
 
-  var _c = react_1.useState(defaultValue || null),
-      date = _c[0],
-      setDate = _c[1];
-
   react_1.useEffect(function () {
+    console.log();
     registerField({
       name: fieldName,
       ref: inputRef.current,
-      path: 'props.selected',
+      getValue: function getValue(ref) {
+        return Number(ref.state.numAsString);
+      },
+      setValue: function setValue(ref, value) {
+        ref.state.value = value;
+      },
       clearValue: function clearValue(ref) {
-        ref.clear();
+        ref.state.value = '';
       }
     });
   }, [fieldName, registerField]);
