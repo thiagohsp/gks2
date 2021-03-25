@@ -13,19 +13,25 @@ interface Props extends Omit<NumberFormatProps, 'onChange'> {
     label?: string;
 }
 export default function NumberInput({ name, label, ...rest }: Props) {
-    const inputRef = useRef(null);
-    const { fieldName, registerField, defaultValue, error } = useField(name);
-    const [date, setDate] = useState(defaultValue || null);
+    const inputRef = useRef<NumberFormat>(null)
+    const { fieldName, defaultValue, registerField, error } = useField(name);
     useEffect(() => {
+        console.log();
         registerField({
             name: fieldName,
             ref: inputRef.current,
-            path: 'props.selected',
-            clearValue: (ref: any) => {
-                ref.clear();
+            getValue: ref => {
+                return Number(ref.state.numAsString)
             },
-        });
-    }, [fieldName, registerField]);
+            setValue: (ref, value) => {
+                ref.state.value = value
+            },
+            clearValue: ref => {
+                ref.state.value = ''
+            },
+        })
+    }, [fieldName, registerField])
+
     return (
         <Container>
             {label && <label htmlFor={fieldName}>{label}</label>}

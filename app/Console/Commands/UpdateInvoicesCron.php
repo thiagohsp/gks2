@@ -2,8 +2,10 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Account;
 use App\Models\Customer;
 use App\Models\Invoice;
+use App\Repository\Eloquent\AccountRepository;
 use App\Repository\Eloquent\CustomerRepository;
 use App\Repository\Eloquent\InvoiceRepository;
 use App\Services\InvoiceService;
@@ -56,13 +58,46 @@ class UpdateInvoicesCron extends Command
     {
         $hasNextPage = true;
         $page = 1;
-        $invoiceRepository = new InvoiceRepository(app(Invoice::class));
+        $invoiceRepository  = new InvoiceRepository(app(Invoice::class));
         $customerRepository = new CustomerRepository(app(Customer::class));
+        $accountRepository  = new AccountRepository(app(Account::class));
         $invoiceService = new InvoiceService($invoiceRepository, $customerRepository);
-
 
         while ($hasNextPage) {
             # code...
+
+            // Busca as contas correntes //
+
+
+            $response = $this->http->get('contas_correntes')->object();
+
+            if (!isset($response->contas_correntes)) {
+                $hasNextPage = false;
+                break;
+            }
+
+            foreach ($response->contas_correntes as $conta_corrente) {
+                $contaCorrente = $accountRepository->query()->where(
+                    'codigo_conta_corrente_maino', '=' , $conta_corrente->codigo_conta_corrente
+                )->first();
+
+                if (!isset($contaCorrente) || $contaCorrente->isEmpty()) {
+                    $accountRepository->create([
+                        'codigo_conta_corrente_maino' => $conta_corrente->codigo_conta_corrente,
+                        'bank_number' => $conta_corrente->numero_banco,
+                        'bank_name' => $conta_corrente->nome_banco,
+                        'label' => $conta_corrente->descricao,
+                        'agency' => $conta_corrente->agencia,
+                        'account' => $conta_corrente->conta_corrente,
+                        'allow_pjbank_bills' => $conta_corrente->emite_boleto_pjbank,
+                        'active' => $conta_corrente->ativa,
+                    ]);
+                }
+            }
+
+            return;
+
+
             $response = $this->http->get('notas_fiscais_emitidas', [
                 'page' => $page
             ])->object();

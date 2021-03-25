@@ -56,6 +56,19 @@ interface IPageProps {
     }>;
 }
 
+interface IContaCorrente {
+    id: string;
+    codigo_conta_corrente_maino: string;
+    bank_number: string;
+    bank_name: string;
+    agency: string;
+    account: string;
+    allow_pjbank_bills: boolean;
+    active: boolean;
+    value?: string;
+    label?: string;
+}
+
 interface ICliente {
     id: string;
     social_name: string;
@@ -85,6 +98,7 @@ const Index: React.FC<IPageProps> = (props) => {
     }>>([]);
     const [startDate, setStartDate] = useState(new Date());
     const [clientes, setClientes] = useState<ICliente[]>([]);
+    const [contasCorrentes, setContasCorrentes] = useState<IContaCorrente[]>([]);
     const formFiltroRef = useRef<FormHandles>(null);
     const formLoteRef = useRef<FormHandles>(null);
 
@@ -107,6 +121,23 @@ const Index: React.FC<IPageProps> = (props) => {
             });
     }, []);
 
+    useEffect(() => {
+        axios.get<IContaCorrente[]>('api/accounts')
+            .then((response) => {
+                const mappedData = response?.data?.filter((item) => {
+                    console.log(item.active && item.allow_pjbank_bills);
+                    return (item.active && item.allow_pjbank_bills)
+                }).map((data) => {
+                    return {
+                        ...data,
+                        value: data.codigo_conta_corrente_maino,
+                        label: `${data.bank_number} - ${data.bank_name.toUpperCase()} | ${data.agency} | ${data.account} | ${data.label}`
+                    }
+                })
+                setContasCorrentes(mappedData);
+            });
+    }, []);
+
     const handleSubmit: SubmitHandler<FormData> = data => {
         console.log(data);
         axios.get('api/invoices', {
@@ -123,20 +154,12 @@ const Index: React.FC<IPageProps> = (props) => {
         });
     }
 
-    const handleSubmitLote: SubmitHandler<FormData> = data => {
-        console.log(data);
-        axios.get('api/invoices', {
-            params: {
-                customer_id: data.customer,
-                data_ini: data.data_ini,
-                data_fin: data.data_fin,
-                nf_ini: data.nf_ini,
-                nf_fin: data.nf_fin,
-            }
-        }).then((response) => {
-            setInvoices(response.data.data);
-            setLinks(response.data.links);
-        });
+    const handleSubmitLote: SubmitHandler<FormData> = formData => {
+        const requestData = {
+            ...formData,
+            notas_fiscais: selectedRows
+        }
+        console.log(requestData);
     }
 
     const columns: Array<Column<Invoice>> = useMemo(() => [
@@ -318,14 +341,14 @@ const Index: React.FC<IPageProps> = (props) => {
                 <Form ref={formLoteRef} onSubmit={handleSubmitLote} className="flex flex-col flex-1 w-full ">
                     <div className="mx-2 flex flex-auto space-x-2 justify-items-stretch items-end pb-4">
                         <Input
-                            name="email"
-                            label="E-mail"
-                            style={{ flex: "auto" }}
-                        />
-                        <Input
                             name="codigo_lote"
                             label="Código do Lote"
                             style={{ flex: "auto" }}
+                        />
+                        <DatePicker
+                            name="data_vencimento"
+                            label="Data de Vencimento"
+                            className="flex-auto"
                         />
                         <NumberInput
                             prefix={'R$ '}
@@ -339,13 +362,6 @@ const Index: React.FC<IPageProps> = (props) => {
                             label="Valor Máximo Cobrança"
                             style={{ flex: "auto" }}
                         />
-                    </div>
-                    <div className="mx-2 flex space-x-2 justify-items-stretch items-end pb-4">
-                        <DatePicker
-                            name="data_vencimento"
-                            label="Data de Vencimento"
-                            className="flex-auto"
-                        />
                         <NumberInput
                             prefix={'R$ '}
                             name="totalSelecionado"
@@ -354,7 +370,25 @@ const Index: React.FC<IPageProps> = (props) => {
                             value={totalSaldoSelecionado}
                             className="flex-auto"
                         />
+                    </div>
+                    <div className="mx-2 flex space-x-2 justify-items-stretch items-end pb-4">
+
+                        <Input
+                            className="flex-1"
+                            name="email"
+                            label="E-mail"
+                            style={{ flex: "auto" }}
+                        />
+
                         <div className="flex-1">
+                            <label htmlFor="agente" className="mb-2">Conta Corrente</label>
+                            <Select
+                                className="mt-1"
+                                name="conta_corrente"
+                                options={contasCorrentes}
+                            />
+                        </div>
+                        <div className="">
                             <button
                                 type="submit"
                                 className="bg-green-500 hover:bg-green-700 text-white font-bold py-2.5 px-4 rounded inline-flex items-center" >
