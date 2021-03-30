@@ -24,12 +24,12 @@ class AccountRepository extends BaseRepository implements AccountRepositoryInter
         $this->model = $model;
     }
 
-    public function findByDocument(
-        string $document_number,
+    public function findByCodigoMaino(
+        string $codigo_conta_corrente_maino,
         array $columns = ['*'],
         array $relations = []
     ): ?Collection {
-        return $this->model->with($relations)->where('document_number', '=', $document_number)->get($columns);
+        return $this->model->with($relations)->where('codigo_conta_corrente_maino', '=', $codigo_conta_corrente_maino)->get($columns);
     }
 
 }

@@ -72,6 +72,7 @@ interface IContaCorrente {
 interface ICliente {
     id: string;
     social_name: string;
+    is_active: boolean;
     value?: string;
     label?: string;
 }
@@ -117,7 +118,7 @@ const Index: React.FC<IPageProps> = (props) => {
                         label: data.social_name
                     }
                 })
-                setClientes(mappedData);
+                setClientes(mappedData.filter((item) => item.is_active));
             });
     }, []);
 
@@ -159,7 +160,10 @@ const Index: React.FC<IPageProps> = (props) => {
             ...formData,
             notas_fiscais: selectedRows
         }
-        console.log(requestData);
+
+        console.log('submit');
+
+        axios.post('/api/batch', requestData).then((response) => console.log(response.data));
     }
 
     const columns: Array<Column<Invoice>> = useMemo(() => [
@@ -229,7 +233,7 @@ const Index: React.FC<IPageProps> = (props) => {
                 <div className="bg-white rounded shadow p-2 mb-8">
                     <div className="mx-2 flex">
                         <div className="flex-1 mr-1">
-                            <label htmlFor="customer" className="mb-2">Clientes</label>
+                            <label htmlFor="customer" className="mb-2">Clientes (somente ativos)</label>
                             <Select
                                 className="mt-1"
                                 name="customer"

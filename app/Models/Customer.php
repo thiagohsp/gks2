@@ -27,7 +27,8 @@ class Customer extends Model
         'adress_state',
         'adress_country',
         'email',
-        'customer_balance'
+        'customer_balance',
+        'is_active'
     ];
 
     protected $casts = [
