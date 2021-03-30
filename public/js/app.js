@@ -5376,7 +5376,9 @@ var Index = function Index(props) {
           label: data.social_name
         });
       });
-      setClientes(mappedData);
+      setClientes(mappedData.filter(function (item) {
+        return item.is_active;
+      }));
     });
   }, []);
   react_1.useEffect(function () {
@@ -5417,7 +5419,10 @@ var Index = function Index(props) {
       notas_fiscais: selectedRows
     });
 
-    console.log(requestData);
+    console.log('submit');
+    axios_1["default"].post('/api/batch', requestData).then(function (response) {
+      return console.log(response.data);
+    });
   };
 
   var columns = react_1.useMemo(function () {
@@ -5527,7 +5532,7 @@ var Index = function Index(props) {
   }, react_1["default"].createElement("label", {
     htmlFor: "customer",
     className: "mb-2"
-  }, "Clientes"), react_1["default"].createElement(Select_1["default"], {
+  }, "Clientes (somente ativos)"), react_1["default"].createElement(Select_1["default"], {
     className: "mt-1",
     name: "customer",
     options: clientes

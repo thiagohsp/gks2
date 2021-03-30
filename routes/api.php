@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\BatchController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\InvoiceController;
 use Illuminate\Http\Request;
@@ -24,3 +25,5 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 Route::get('/invoices', [InvoiceController::class, 'query']);
 Route::get('/customers', [CustomerController::class, 'index']);
 Route::get('/accounts', [AccountController::class, 'index']);
+
+Route::post('/batch', [BatchController::class, 'store']);
