@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use Illuminate\Console\Command;
 use App\Models\Account;
 use App\Models\Customer;
 use App\Models\Invoice;
@@ -9,24 +10,19 @@ use App\Repository\Eloquent\AccountRepository;
 use App\Repository\Eloquent\CustomerRepository;
 use App\Repository\Eloquent\InvoiceRepository;
 use App\Services\CreateInvoiceService;
-use App\Services\InvoiceService;
 use Carbon\Carbon;
-use Illuminate\Console\Command;
-use Illuminate\Http\Client\HttpClientException;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-class UpdateInvoicesCron extends Command
-{
 
-    private $http;
+class UpdateInvoices extends Command
+{
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'update-invoice';
+    protected $signature = 'update-invoices:cron';
 
     /**
      * The console command description.
@@ -145,6 +141,17 @@ class UpdateInvoicesCron extends Command
                     $invoice = $invoice->first();
                 }
 
+                $invoiceRepository->update($invoice->id,
+                    [
+                        'total_devolucoes'      => $nota_fiscal->financeiro->total_devolucoes,
+                        'valor_pedido_liquido'  => $nota_fiscal->financeiro->valor_pedido_liquido,
+                        'total_faturado'        => $nota_fiscal->financeiro->total_faturado,
+                        'total_liquidado'       => $nota_fiscal->financeiro->total_liquidado,
+                        'falta_faturar'         => $nota_fiscal->financeiro->falta_faturar,
+                        'falta_liquidar'        => $nota_fiscal->financeiro->falta_liquidar,
+                    ]
+                );
+
                 // Consulta contas a receber
                 $responseContasAReceber = $this->http->get('contas_a_recebers', [
                     'numero_da_nota_fiscal' => $nota_fiscal->numero_nfe,
@@ -177,7 +184,7 @@ class UpdateInvoicesCron extends Command
 
                     $invoiceRepository->update($invoice->id,
                         [
-                            'balance' => $invoice->balance - $boleto->valor,
+                            //'balance' => $invoice->balance - $boleto->valor,
                             'last_letter' => strpos(trim($boleto->numero_titulo), '-')
                                 ?  trim(explode('-',trim($boleto->numero_titulo))[1])
                                 :  'A',

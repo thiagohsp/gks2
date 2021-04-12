@@ -26,7 +26,18 @@ class Bill extends Model
         'link',
         'invoice_id',
         'account_id',
+        'batch_id'
+    ];
 
+    protected $casts = [
+
+        'due_date' => 'datetime',
+        'payment_date' => 'datetime',
+        'value' => 'float',
+        'payment_value' => 'float',
+        'net_value' => 'float',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
 
@@ -36,6 +47,10 @@ class Bill extends Model
 
     public function account() {
         return $this->belongsTo(Account::class, 'account_id', 'id');
+    }
+
+    public function batch() {
+        return $this->belongsTo(Batch::class, 'batch_id', 'id');
     }
 
 }

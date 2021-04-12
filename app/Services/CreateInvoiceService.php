@@ -9,7 +9,7 @@ use App\Repository\InvoiceRepositoryInterface;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 
-class InvoiceService
+class CreateInvoiceService
 {
 
 	private InvoiceRepository $invoiceRepository;

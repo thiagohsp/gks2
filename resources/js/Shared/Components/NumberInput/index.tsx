@@ -16,7 +16,6 @@ export default function NumberInput({ name, label, ...rest }: Props) {
     const inputRef = useRef<NumberFormat>(null)
     const { fieldName, defaultValue, registerField, error } = useField(name);
     useEffect(() => {
-        console.log();
         registerField({
             name: fieldName,
             ref: inputRef.current,
