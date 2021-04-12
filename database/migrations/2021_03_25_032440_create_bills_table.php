@@ -24,10 +24,13 @@ class CreateBillsTable extends Migration
             $table->string('link')->nullable();
 
             $table->uuid('invoice_id');
-            $table->foreign('invoice_id')->references('id')->on('invoices')->onDelete('cascade');
+            $table->foreign('invoice_id')->references('id')->on('invoices');
 
             $table->uuid('account_id');
-            $table->foreign('account_id')->references('id')->on('accounts')->onDelete('cascade');
+            $table->foreign('account_id')->references('id')->on('accounts');
+
+            $table->uuid('batch_id');
+            $table->foreign('batch_id')->references('id')->on('batch');
 
             $table->timestamps();
         });

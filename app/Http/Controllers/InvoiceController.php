@@ -46,11 +46,11 @@ class InvoiceController extends Controller
 
         if ($req->agente2) $query->where('agent_2', '=', $req->agente2);
 
-        if ($req->saldo_ini) $query->where('balance', '<=', $req->saldo_ini);
+        if ($req->saldo_ini) $query->where('falta_faturar', '>=',  $req->saldo_ini);
 
         if ($req->saldo_fin) $query->where('balance', '<=', $req->saldo_fin);
 
-        $result = $query->latest('number')->paginate(10, ['*']);
+        $result = $query->latest('number')->get();
 
         return response()->json($result, 200);
     }

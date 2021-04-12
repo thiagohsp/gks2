@@ -44,7 +44,8 @@ type Invoice = {
     operation?: string;
     status: string;
     last_letter: string;
-    customer: ICustomer
+    customer: ICustomer;
+    falta_faturar: number;
 }
 
 interface IPageProps {
@@ -54,6 +55,11 @@ interface IPageProps {
         label: string;
         active: boolean;
     }>;
+}
+
+interface IAgente {
+    label: string;
+    value: string;
 }
 
 interface IContaCorrente {
@@ -92,46 +98,69 @@ interface FormData {
 const Index: React.FC<IPageProps> = (props) => {
 
     const [invoices, setInvoices] = useState<Invoice[]>([]);
-    const [links, setLinks] = useState<Array<{
-        url: string;
-        label: string;
-        active: boolean;
-    }>>([]);
-    const [startDate, setStartDate] = useState(new Date());
     const [clientes, setClientes] = useState<ICliente[]>([]);
+    const [agents, setAgents] = useState<IAgente[]>([]);
+    const [agents2, setAgents2] = useState<IAgente[]>([]);
     const [contasCorrentes, setContasCorrentes] = useState<IContaCorrente[]>([]);
     const formFiltroRef = useRef<FormHandles>(null);
     const formLoteRef = useRef<FormHandles>(null);
 
     useEffect(() => {
-        setInvoices(props.invoices);
-        setLinks(props.links);
+        const { invoices } = props;
+
+        const distinctAgents = Array.from(new Set(invoices.map(x => x.agent))).map(
+            (item) => {
+                return {
+                    label: item || "",
+                    value: item || ""
+                }
+            }
+        );
+
+        setAgents(distinctAgents);
+
+        const distinctAgents2 = Array.from(new Set(invoices.map(x => x.agent_2))).map(
+            (item) => {
+                return {
+                    label: item || "",
+                    value: item || ""
+                }
+            }
+        );
+
+        setAgents2(distinctAgents2);
+
+        setInvoices(invoices);
     }, []);
 
     useEffect(() => {
-        axios.get<ICliente[]>('api/customers')
-            .then((response) => {
-                const mappedData = response?.data?.map((data) => {
-                    return {
-                        ...data,
-                        value: data.id,
-                        label: data.social_name
-                    }
-                })
-                setClientes(mappedData.filter((item) => item.is_active));
-            });
+        async function loadCustomers() {
+            await axios.get<ICliente[]>('api/customers')
+                .then((response) => {
+                    const mappedData = response?.data?.map((data) => {
+                        return {
+                            ...data,
+                            value: data.id,
+                            label: data.social_name
+                        }
+                    })
+                    setClientes(mappedData.filter((item) => item.is_active));
+                });
+        }
+
+        loadCustomers();
+
     }, []);
 
     useEffect(() => {
         axios.get<IContaCorrente[]>('api/accounts')
             .then((response) => {
                 const mappedData = response?.data?.filter((item) => {
-                    console.log(item.active && item.allow_pjbank_bills);
                     return (item.active && item.allow_pjbank_bills)
                 }).map((data) => {
                     return {
                         ...data,
-                        value: data.codigo_conta_corrente_maino,
+                        value: data.id,
                         label: `${data.bank_number} - ${data.bank_name.toUpperCase()} | ${data.agency} | ${data.account} | ${data.label}`
                     }
                 })
@@ -143,15 +172,15 @@ const Index: React.FC<IPageProps> = (props) => {
         console.log(data);
         axios.get('api/invoices', {
             params: {
-                customer_id: data.customer,
-                data_ini: data.data_ini,
-                data_fin: data.data_fin,
-                nf_ini: data.nf_ini,
-                nf_fin: data.nf_fin,
+                customer_id: data.customer || null,
+                data_ini: data.data_ini || null,
+                data_fin: data.data_fin || null,
+                nf_ini: data.nf_ini || null,
+                nf_fin: data.nf_fin || null,
+                saldo_ini: Number(data.saldo_ini),
             }
         }).then((response) => {
-            setInvoices(response.data.data);
-            setLinks(response.data.links);
+            setInvoices(response.data);
         });
     }
 
@@ -161,9 +190,9 @@ const Index: React.FC<IPageProps> = (props) => {
             notas_fiscais: selectedRows
         }
 
-        console.log('submit');
-
-        axios.post('/api/batch', requestData).then((response) => console.log(response.data));
+        axios.post('/api/batch', requestData).then((response) =>
+            console.log('Data: ' + response.data)
+        );
     }
 
     const columns: Array<Column<Invoice>> = useMemo(() => [
@@ -194,10 +223,10 @@ const Index: React.FC<IPageProps> = (props) => {
 
         },
         {
-            accessor: 'balance',
+            accessor: 'falta_faturar',
             Cell: (props: any) => <div style={{ textAlign: "right" }}>{props.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>,
             Header: () => (
-                <div style={{ textAlign: "right" }}>Saldo</div>)
+                <div style={{ textAlign: "right" }}>A Faturar</div>)
         }
     ], []);
 
@@ -207,11 +236,14 @@ const Index: React.FC<IPageProps> = (props) => {
     const [totalSaldoSelecionado, setTotalSaldoSelecionado] = React.useState(0);
 
     React.useEffect(() => {
+
         if (selectedRows.length > 0) {
             const valorCalculado = selectedRows.reduce((acc, cur) => {
-                return { balance: acc.balance + cur.balance };
+
+                return { falta_faturar: acc.falta_faturar + cur.falta_faturar };
             });
-            setTotalSaldoSelecionado(valorCalculado.balance);
+
+            setTotalSaldoSelecionado(valorCalculado.falta_faturar);
         } else {
             setTotalSaldoSelecionado(0);
         }
@@ -238,6 +270,7 @@ const Index: React.FC<IPageProps> = (props) => {
                                 className="mt-1"
                                 name="customer"
                                 options={clientes}
+                                isClearable
                             />
                         </div>
 
@@ -246,7 +279,8 @@ const Index: React.FC<IPageProps> = (props) => {
                             <Select
                                 className="mt-1"
                                 name="agente"
-                                options={clientes}
+                                options={agents}
+                                isClearable
                             />
                         </div>
 
@@ -255,7 +289,8 @@ const Index: React.FC<IPageProps> = (props) => {
                             <Select
                                 className="mt-1"
                                 name="agente2"
-                                options={clientes}
+                                options={agents2}
+                                isClearable
                             />
                         </div>
                     </div>

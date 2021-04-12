@@ -2,7 +2,7 @@
 
 namespace App\Repository\Eloquent;
 
-use App\Models\Bill;
+use App\Models\Batch;
 use App\Repository\BatchRepositoryInterface;
 use Illuminate\Database\Eloquent\Model;
 
@@ -18,7 +18,7 @@ class BatchRepository extends BaseRepository implements BatchRepositoryInterface
      *
      * @param Model $model
      */
-    public function __construct(Bill $model)
+    public function __construct(Batch $model)
     {
         $this->model = $model;
     }
