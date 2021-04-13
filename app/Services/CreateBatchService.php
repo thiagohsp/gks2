@@ -2,12 +2,15 @@
 
 namespace App\Services;
 
+use App\Mail\SendBatchMail;
+use App\Repository\Eloquent\AccountRepository;
 use App\Repository\Eloquent\BatchRepository;
 use App\Repository\Eloquent\BillRepository;
 use App\Repository\Eloquent\InvoiceRepository;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class CreateBatchService
 {
@@ -15,14 +18,17 @@ class CreateBatchService
     private BatchRepository $batchRepository;
     private BillRepository  $billRepository;
     private InvoiceRepository $invoiceRepository;
+    private AccountRepository $accountRepository;
 
 	public function __construct(BatchRepository $batchRepository,
                                 BillRepository  $billRepository,
-                                InvoiceRepository  $invoiceRepository )
+                                InvoiceRepository  $invoiceRepository,
+                                AccountRepository $accountRepository )
 	{
 		$this->batchRepository    = $batchRepository;
 		$this->billRepository     = $billRepository;
 		$this->invoiceRepository  = $invoiceRepository;
+		$this->accountRepository  = $accountRepository;
 	}
 
 	public function execute(string $code,
@@ -96,7 +102,9 @@ class CreateBatchService
                 // Cria o novo boleto
                 $createBillService = new CreateBillService(
                     $this->billRepository,
-                    $this->invoiceRepository);
+                    $this->invoiceRepository,
+                    $this->accountRepository
+                );
 
                 $bill = $createBillService->execute(
                     $invoice['id'],
@@ -109,6 +117,9 @@ class CreateBatchService
             }
 
         }
+
+        // Send mail
+        Mail::to($email)->send(new SendBatchMail($batch->id));
 
         return $batch;
 

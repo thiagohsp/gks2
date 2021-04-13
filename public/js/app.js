@@ -5199,14 +5199,22 @@ var Index = function Index(props) {
           className: "ml-2"
         }, "Boletos")), react_1["default"].createElement("a", {
           href: "/file?d=" + props.value,
-          download: true,
           className: "bg-green-500 hover:bg-green-700 text-white text-xs font-bold mx-2 py-2 px-4 rounded-full inline-flex items-center"
         }, react_1["default"].createElement(fi_1.FiDownload, {
           size: 16,
           color: "#fff"
         }), react_1["default"].createElement("span", {
           className: "ml-2"
-        }, "Download")));
+        }, "Download")), react_1["default"].createElement(inertia_react_1.InertiaLink, {
+          href: "/lotes/" + props.value,
+          method: "DELETE",
+          as: "button",
+          type: "button",
+          only: ['data'],
+          className: "bg-red-500 hover:bg-red-700 text-white text-xs font-bold mx-2 py-2 px-4 rounded-full inline-flex items-center"
+        }, react_1["default"].createElement(fi_1.FiTrash, {
+          size: 16
+        })));
       }
     }];
   }, []);

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Table } from "../../Shared/Components/__Table";
 import { Layout } from "../../Shared/Layout";
-import { FiList, FiDownload } from 'react-icons/fi'
+import { FiList, FiDownload, FiTrash } from 'react-icons/fi'
 import { format, parseISO } from "date-fns";
 import { Column } from "react-table";
 import { InertiaLink } from "@inertiajs/inertia-react";
@@ -79,11 +79,20 @@ const Index: React.FC<IPageProps> = (props) => {
 
                     <a
                         href={`/file?d=${props.value}`}
-                        download
                         className="bg-green-500 hover:bg-green-700 text-white text-xs font-bold mx-2 py-2 px-4 rounded-full inline-flex items-center">
                         <FiDownload size={16} color={"#fff"}></FiDownload>
                         <span className="ml-2">Download</span>
                     </a>
+
+                    <InertiaLink
+                        href={`/lotes/${props.value}`}
+                        method="DELETE"
+                        as="button"
+                        type="button"
+                        only={['data']}
+                        className="bg-red-500 hover:bg-red-700 text-white text-xs font-bold mx-2 py-2 px-4 rounded-full inline-flex items-center">
+                        <FiTrash size={16}></FiTrash>
+                    </InertiaLink>
                 </>
         },
     ], []);

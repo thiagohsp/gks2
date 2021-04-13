@@ -4,11 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use YourAppRocks\EloquentUuid\Traits\HasUuid;
 
 class Batch extends Model
 {
-    use HasFactory, HasUuid;
+    use HasFactory, HasUuid, SoftDeletes;
+
+    protected $dates = ['deleted_at'];
 
     protected $uuidColumnName = 'id';
     protected $keyType = 'string';
@@ -30,6 +33,7 @@ class Batch extends Model
 
         'total_value' => 'float',
         'max_bill_value' => 'float',
+        'deleted_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];

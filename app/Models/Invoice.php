@@ -4,11 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use YourAppRocks\EloquentUuid\Traits\HasUuid;
 
 class Invoice extends Model
 {
-    use HasFactory, HasUuid;
+    use HasFactory, HasUuid, SoftDeletes;
+
+    protected $dates = ['deleted_at'];
 
     protected $uuidColumnName = 'id';
     protected $keyType = 'string';
