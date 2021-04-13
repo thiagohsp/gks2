@@ -25,14 +25,14 @@ class SoftDeleteBillService {
 
         $bill = $this->billRepository->findById($billId);
 
-        $invoice = $bill->invoice();
+        $invoice = $bill->invoice;
 
         if ($invoice == null || !isset($invoice)) {
             throw new Exception("Bill Not Found!", 0);
             return;
         }
 
-        $previousLetter = $invoice->getPreviousLetter();
+        $previousLetter = $invoice->getPreviousLetter($invoice->last_letter);
 
         $result = $this->invoiceRepository->update($invoice->id, [
                 'balance' => $invoice->balance + $bill->value,
@@ -41,17 +41,22 @@ class SoftDeleteBillService {
             ]
         );
 
-        $result = $this->billRepository->deleteById($bill->id);
+        if ($result) {
 
-        $bill->update([
-            'status' => 'C'
-        ]);
+            $result = $this->billRepository->deleteById($bill->id);
 
-        $bill->refresh();
+            $bill->update([
+                'status' => 'C'
+            ]);
 
-        $invoice->refresh();
+            $bill->refresh();
 
-        return $bill;
+            $invoice->refresh();
+        }
+
+        //dd($result);
+
+        return $result;
 
     }
 }

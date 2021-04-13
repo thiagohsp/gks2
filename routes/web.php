@@ -27,6 +27,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/notas-fiscais', [InvoiceController::class, 'index'])->name('dashboard');
     Route::get('/lotes', [BatchController::class, 'index'])->name('lotes');
+    Route::delete('/lotes/{batchId}', [BatchController::class, 'destroy'])->name('lotes.delete');
     Route::get('/lotes/{batchId}/contas_a_recebers', [BillController::class, 'index'])->name('contas_a_recebers');
     Route::get('/file', [DownloadController::class, 'getBatchDownload'])->name('lotes_download');
     Route::get('/', [InvoiceController::class, 'index']);

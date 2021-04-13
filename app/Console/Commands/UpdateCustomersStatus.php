@@ -100,7 +100,7 @@ class UpdateInvoicesCron extends Command
 
         $customerRepository = new CustomerRepository(app(Customer::class));
 
-        $customers = $customerRepository->all();
+        $customers = $customerRepository->query()->where('updated_at', '<=', '2021-04-10')->get();
         $count = 0;
 
         foreach ($customers as $customer) {
