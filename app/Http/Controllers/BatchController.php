@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Repository\AccountRepositoryInterface;
 use App\Repository\BatchRepositoryInterface;
 use App\Repository\BillRepositoryInterface;
+use App\Repository\CustomerRepositoryInterface;
 use App\Repository\InvoiceRepositoryInterface;
 use App\Services\CreateBatchService;
 use App\Services\DeleteBatchService;
@@ -18,18 +19,21 @@ class BatchController extends Controller
     private $billRepository;
     private $invoiceRepository;
     private $accountRepository;
+    private $customerRepository;
 
     public function __construct(
-        BatchRepositoryInterface   $batchRepository,
-        BillRepositoryInterface    $billRepository,
-        InvoiceRepositoryInterface $invoiceRepository,
-        AccountRepositoryInterface $accountRepository
+        BatchRepositoryInterface    $batchRepository,
+        BillRepositoryInterface     $billRepository,
+        InvoiceRepositoryInterface  $invoiceRepository,
+        AccountRepositoryInterface  $accountRepository,
+        CustomerRepositoryInterface $customerRepository
     )
     {
         $this->batchRepository   = $batchRepository;
         $this->billRepository    = $billRepository;
         $this->invoiceRepository = $invoiceRepository;
         $this->accountRepository = $accountRepository;
+        $this->customerRepository = $customerRepository;
     }
 
     public function index() {
@@ -48,7 +52,8 @@ class BatchController extends Controller
             $this->batchRepository,
             $this->billRepository,
             $this->invoiceRepository,
-            $this->accountRepository
+            $this->accountRepository,
+            $this->customerRepository
         );
 
         $batch = $createBatchService->execute(
@@ -60,6 +65,10 @@ class BatchController extends Controller
             $req->conta_corrente,
             $req->notas_fiscais
         );
+
+        if ($batch == null) {
+            return response('Internal server error', 500);
+        }
 
         $response = $this->batchRepository->all();
 
@@ -73,7 +82,9 @@ class BatchController extends Controller
         $deleteBatchService = new DeleteBatchService(
             $this->batchRepository,
             $this->billRepository,
-            $this->invoiceRepository);
+            $this->invoiceRepository,
+            $this->customerRepository
+        );
 
         $deleteBatchService->execute($id);
 

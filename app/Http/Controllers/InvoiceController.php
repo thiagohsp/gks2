@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Invoice;
 use App\Repository\InvoiceRepositoryInterface;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -19,7 +21,7 @@ class InvoiceController extends Controller
 
     public function index() {
         //dd(Auth::user());
-        $response = $this->invoiceRepository->query()->with('customer')->latest('number')->get();
+        $response = $this->invoiceRepository->query()->where('status','!=', 'C')->with('customer')->latest('number')->get();
         //dd($response);
         return Inertia::render('Invoices/Index', [
             'invoices' => $response
@@ -30,7 +32,7 @@ class InvoiceController extends Controller
 
     public function query(Request $req) {
 
-        $query = $this->invoiceRepository->query()->with('customer');
+        $query = $this->invoiceRepository->query()->where('status' , '!=', 'C');
 
         if ($req->customer_id) $query->where('customer_id', '=', $req->customer_id);
 
@@ -44,11 +46,20 @@ class InvoiceController extends Controller
 
         if ($req->agente) $query->where('agent', '=', $req->agente);
 
-        if ($req->agente2) $query->where('agent_2', '=', $req->agente2);
+        if ($req->agente_2) $query->where('agent_2', '=', $req->agente_2);
 
-        if ($req->saldo_ini) $query->where('falta_faturar', '>=',  $req->saldo_ini);
+        if ($req->saldo_nf) $query->where('falta_faturar', '>=',  $req->saldo_nf);
 
-        if ($req->saldo_fin) $query->where('balance', '<=', $req->saldo_fin);
+        if ($req->saldo_cli) {
+
+            $saldoCliente = $req->saldo_cli;
+            $query->whereHas('customer', function (Builder $query) use($saldoCliente) {
+                $query->where('falta_faturar', '>=', $saldoCliente);
+            })->with('customer');
+
+        } else {
+            $query->with('customer');
+        }
 
         $result = $query->latest('number')->get();
 
