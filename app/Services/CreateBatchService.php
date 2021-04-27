@@ -6,6 +6,7 @@ use App\Mail\SendBatchMail;
 use App\Repository\Eloquent\AccountRepository;
 use App\Repository\Eloquent\BatchRepository;
 use App\Repository\Eloquent\BillRepository;
+use App\Repository\Eloquent\CustomerRepository;
 use App\Repository\Eloquent\InvoiceRepository;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Date;
@@ -19,16 +20,19 @@ class CreateBatchService
     private BillRepository  $billRepository;
     private InvoiceRepository $invoiceRepository;
     private AccountRepository $accountRepository;
+    private CustomerRepository $customerRepository;
 
 	public function __construct(BatchRepository $batchRepository,
                                 BillRepository  $billRepository,
                                 InvoiceRepository  $invoiceRepository,
-                                AccountRepository $accountRepository )
+                                AccountRepository $accountRepository,
+                                CustomerRepository $customerRepository )
 	{
 		$this->batchRepository    = $batchRepository;
 		$this->billRepository     = $billRepository;
 		$this->invoiceRepository  = $invoiceRepository;
 		$this->accountRepository  = $accountRepository;
+		$this->customerRepository  = $customerRepository;
 	}
 
 	public function execute(string $code,
@@ -44,7 +48,7 @@ class CreateBatchService
         // Vincular boletos ao lote
         // enviar email ao cliente
 
-        Log::info('Executing CreateBatchService...');
+        // Log::info('Executing CreateBatchService...');
 
         $batch = $this->batchRepository->create([
             'code' => $code,
@@ -57,7 +61,15 @@ class CreateBatchService
 
         $batch->refresh();
 
-        Log::info('Batch Created: '.$batch);
+        // Cria o novo boleto
+        $createBillService = new CreateBillService(
+            $this->billRepository,
+            $this->invoiceRepository,
+            $this->accountRepository,
+            $this->customerRepository
+        );
+
+        // Log::info('Batch Created: '.$batch);
 
         $saldoAEmitir = $totalValue;
 
@@ -66,8 +78,6 @@ class CreateBatchService
         foreach ($invoices as $invoice) {
 
             // $object = json_decode(json_encode($array), FALSE);
-
-            Log::info('Looping invoices: '.$invoice['id']);
 
             # code...
             // Busca o saldo da Nota Fiscal
@@ -99,20 +109,18 @@ class CreateBatchService
                     $saldoNotaFiscal = $saldoNotaFiscal - $valorBoleto;
                 }
 
-                // Cria o novo boleto
-                $createBillService = new CreateBillService(
-                    $this->billRepository,
-                    $this->invoiceRepository,
-                    $this->accountRepository
-                );
-
-                $bill = $createBillService->execute(
-                    $invoice['id'],
-                    $batch->id,
-                    $accountId,
-                    $valorBoleto,
-                    $dueDate
-                );
+                try {
+                    $bill = $createBillService->execute(
+                        $invoice['id'],
+                        $batch->id,
+                        $accountId,
+                        $valorBoleto,
+                        $dueDate
+                    );
+                } catch (\Throwable $th) {
+                    Log::error($th->getMessage());
+                    return null;
+                }
 
             }
 

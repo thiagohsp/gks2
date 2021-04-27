@@ -12,25 +12,26 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Log;
-use SebastianBergmann\Environment\Console;
 
 class CreateBillService {
 
     private BillRepository     $billRepository;
     private InvoiceRepository  $invoiceRepository;
     private AccountRepository  $accountRepository;
+    private CustomerRepository  $customerRepository;
     private $pjBankClient;
     private $mainoClient;
 
     public function __construct(BillRepository     $billRepository,
                                 InvoiceRepository  $invoiceRepository,
-                                AccountRepository  $accountRepository)
+                                AccountRepository  $accountRepository,
+                                CustomerRepository  $customerRepository)
 	{
 		$this->billRepository       = $billRepository;
 		$this->invoiceRepository    = $invoiceRepository;
 		$this->accountRepository    = $accountRepository;
+		$this->customerRepository   = $customerRepository;
 
         $this->pjBankClient = new Client([
             // Base URI is used with relative requests
@@ -41,12 +42,16 @@ class CreateBillService {
             ],
         ]);
 
+        $url = App::environment('local')
+            ? 'https://testes.maino.com.br/api/v2/'
+            : 'https://api.maino.com.br/api/v2/';
+
         $this->mainoClient = new Client([
             // Base URI is used with relative requests
-            'base_uri' => 'https://testes.maino.com.br/api/v2/',
+            'base_uri' => $url,
             'headers' => [
                 'Content-Type'     => 'application/json',
-                'X-Api-Key'        => 'e2f9a7d686625ca2329004bb8241f15f'
+                'X-Api-Key'        => env('MAINO_KEY')
             ],
         ]);
 	}
@@ -57,12 +62,12 @@ class CreateBillService {
                             float   $value,
                             Carbon  $dueDate) {
 
-        Log::info('Invoice: '.$invoiceId);
+        // Log::info('Invoice: '.$invoiceId);
 
-        $invoice = $this->invoiceRepository->findById($invoiceId, ['*'], ['customer']);
-        $account = $this->accountRepository->findById($accountId, ['codigo_conta_corrente_maino']);
+        $invoice  = $this->invoiceRepository->findById($invoiceId, ['*'], ['customer']);
+        $account  = $this->accountRepository->findById($accountId, ['codigo_conta_corrente_maino']);
 
-        Log::info('Invoice Model: '.$invoice);
+        // Log::info('Invoice Model: '.$invoice);
 
         if ($invoice == null || !isset($invoice)) {
             throw new Exception("Nota Fiscal não encontrada!", 0);
@@ -83,13 +88,30 @@ class CreateBillService {
             ],
         ];
 
+        $result = "";
+
         try {
             //'https://api.maino.com.br/api/v2/notas_fiscais_emitidas'
             $response = $this->mainoClient->post('contas_a_recebers', [
+                'connect_timeout' => 8,
                 'json' => $conta_receber
             ]);
 
             $result = json_decode(($response->getBody()->getContents()));
+
+            if ($result != null) {
+
+                sleep(3);
+
+                $response = $this->mainoClient->get('contas_a_recebers/'.$result->id, [
+                    'connect_timeout' => 12
+                ]);
+
+                //Log::info($response->getBody()->getContents());
+
+                $result = json_decode(($response->getBody()->getContents()));
+
+            }
 
         } catch (ClientException $e) {
             $errors = json_decode(substr($e->getMessage(), strpos($e->getMessage(), '{')), true);
@@ -109,7 +131,7 @@ class CreateBillService {
             'payment_date'  => null,
             'payment_value' => null,
             'net_value'     => $value,
-            'link'          => null,
+            'link'          => $result->link_boleto,
             'invoice_id'    => $invoice->id,
             'account_id'    => $accountId,
             'batch_id'      => $batchId
@@ -120,7 +142,14 @@ class CreateBillService {
         $this->invoiceRepository->update($invoice->id, [
             'last_letter' => $nextLetter,
             'balance' => $invoice->balance - $value,
+            'total_faturado' => $invoice->total_faturado + $value,
             'falta_faturar' => $invoice->falta_faturar - $value,
+        ]);
+
+        $this->customerRepository->update($invoice->customer->id, [
+            'balance' => $invoice->customer->balance - $value,
+            'total_faturado' => $invoice->customer->total_faturado + $value,
+            'falta_faturar' => $invoice->customer->falta_faturar - $value,
         ]);
 
         $invoice->refresh();

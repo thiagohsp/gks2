@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Repository\Eloquent\BatchRepository;
 use App\Repository\Eloquent\BillRepository;
+use App\Repository\Eloquent\CustomerRepository;
 use App\Repository\Eloquent\InvoiceRepository;
 use Exception;
 use Illuminate\Support\Carbon;
@@ -16,14 +17,17 @@ class DeleteBatchService
     private BatchRepository $batchRepository;
     private BillRepository  $billRepository;
     private InvoiceRepository $invoiceRepository;
+    private CustomerRepository $customerRepository;
 
 	public function __construct(BatchRepository $batchRepository,
                                 BillRepository  $billRepository,
-                                InvoiceRepository  $invoiceRepository )
+                                InvoiceRepository  $invoiceRepository,
+                                CustomerRepository $customerRepository )
 	{
 		$this->batchRepository    = $batchRepository;
 		$this->billRepository     = $billRepository;
 		$this->invoiceRepository  = $invoiceRepository;
+		$this->customerRepository  = $customerRepository;
 	}
 
 	public function execute(string $id)
@@ -47,7 +51,8 @@ class DeleteBatchService
             # code...
             $deleteBillService = new SoftDeleteBillService(
                 $this->billRepository,
-                $this->invoiceRepository
+                $this->invoiceRepository,
+                $this->customerRepository
             );
 
             $result = $deleteBillService->execute($bill->id);

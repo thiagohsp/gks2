@@ -129,7 +129,7 @@ class UpdateInvoices extends Command
                             $nota_fiscal->serie,
                             $nota_fiscal->cfop->codigo,
                             $nota_fiscal->valor_nota_nfe,
-                            'A',
+                            $nota_fiscal->status,
                             $nota_fiscal->valor_nota_nfe,
                             'A',
                             $nota_fiscal->destinatario
@@ -143,6 +143,7 @@ class UpdateInvoices extends Command
 
                 $invoiceRepository->update($invoice->id,
                     [
+                        'status'                => $nota_fiscal->status,
                         'total_devolucoes'      => $nota_fiscal->financeiro->total_devolucoes,
                         'valor_pedido_liquido'  => $nota_fiscal->financeiro->valor_pedido_liquido,
                         'total_faturado'        => $nota_fiscal->financeiro->total_faturado,

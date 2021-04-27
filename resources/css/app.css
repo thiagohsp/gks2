@@ -7,6 +7,8 @@
 /* Components */
 @import 'components/form.css';
 
+@import 'react-toastify/dist/ReactToastify.css';
+
 /* Utilities */
  * {
     margin: 0;

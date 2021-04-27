@@ -28,11 +28,27 @@ class Customer extends Model
         'adress_country',
         'email',
         'customer_balance',
-        'is_active'
+        'is_active',
+
+        'maino_customer_id',
+        'valor_nota_nfe',
+        'total_devolucoes',
+        'valor_pedido_liquido',
+        'total_faturado',
+        'total_liquidado',
+        'falta_faturar',
+        'falta_liquidar',
     ];
 
     protected $casts = [
-        'customer_balance' => 'float'
+        'customer_balance' => 'float',
+        'valor_nota_nfe'  => 'float',
+        'total_devolucoes'  => 'float',
+        'valor_pedido_liquido'  => 'float',
+        'total_faturado'  => 'float',
+        'total_liquidado'  => 'float',
+        'falta_faturar'  => 'float',
+        'falta_liquidar'  => 'float',
     ];
 
     public function invoices() {

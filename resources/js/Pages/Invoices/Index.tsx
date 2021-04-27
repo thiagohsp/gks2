@@ -1,9 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Table } from "../../Shared/Components/__Table";
 import { Layout } from "../../Shared/Layout";
-import { Pagination } from "../../Shared/Pagination";
-import { FiFilter, FiPlus, FiSearch } from 'react-icons/fi'
-import AdvancedSearch from "./AdvancedSearch";
+import { FiFilter } from 'react-icons/fi'
 import { FormHandles, SubmitHandler } from "@unform/core";
 import axios from "axios";
 import { Form } from "@unform/web";
@@ -13,6 +11,8 @@ import DatePicker from '../../Shared/Components/DatePicker';
 import NumberInput from '../../Shared/Components/NumberInput';
 import { format, parseISO } from "date-fns";
 import { Column } from "react-table";
+import { toast, ToastContainer } from 'react-toastify';
+import LoadingButton from "../../Shared/LoadingButton";
 
 interface ICustomer {
     id: string;
@@ -28,6 +28,7 @@ interface ICustomer {
     adress_country: string;
     email: string;
     customer_balance: number;
+    falta_faturar: number;
 }
 
 type Invoice = {
@@ -91,8 +92,8 @@ interface FormData {
     nf_fin?: number;
     agente?: string;
     agente2?: string;
-    saldo_ini?: number;
-    saldo_fin?: number;
+    saldo_nf?: number;
+    saldo_cli?: number;
 }
 
 const Index: React.FC<IPageProps> = (props) => {
@@ -102,6 +103,7 @@ const Index: React.FC<IPageProps> = (props) => {
     const [agents, setAgents] = useState<IAgente[]>([]);
     const [agents2, setAgents2] = useState<IAgente[]>([]);
     const [contasCorrentes, setContasCorrentes] = useState<IContaCorrente[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
     const formFiltroRef = useRef<FormHandles>(null);
     const formLoteRef = useRef<FormHandles>(null);
 
@@ -173,26 +175,52 @@ const Index: React.FC<IPageProps> = (props) => {
         axios.get('api/invoices', {
             params: {
                 customer_id: data.customer || null,
+                agente: data.agente || null,
+                agente_2: data.agente2 || null,
                 data_ini: data.data_ini || null,
                 data_fin: data.data_fin || null,
                 nf_ini: data.nf_ini || null,
                 nf_fin: data.nf_fin || null,
-                saldo_ini: Number(data.saldo_ini),
+                saldo_nf: Number(data.saldo_nf) || null,
+                saldo_cli: Number(data.saldo_cli) || null,
             }
         }).then((response) => {
             setInvoices(response.data);
         });
     }
 
-    const handleSubmitLote: SubmitHandler<FormData> = formData => {
+    const handleSubmitLote: SubmitHandler<FormData> = async (formData) => {
+
         const requestData = {
             ...formData,
             notas_fiscais: selectedRows
         }
 
-        axios.post('/api/batch', requestData).then((response) =>
-            console.log('Data: ' + response.data)
-        );
+        try {
+
+            toast.info('Gerando lote, aguarde...');
+
+            setIsLoading(true);
+
+            const result = await axios.post('/api/batch', requestData).then((response) => {
+                toast.dismiss();
+                setIsLoading(false)
+            });
+
+            toast.success('Lote gerado com sucesso', {
+                autoClose: 3000
+            });
+
+        } catch (error) {
+
+            toast.dismiss();
+
+            toast.error(`Erro ao gerar o lote ${error}`);
+
+            setIsLoading(false);
+
+        }
+
     }
 
     const columns: Array<Column<Invoice>> = useMemo(() => [
@@ -226,7 +254,14 @@ const Index: React.FC<IPageProps> = (props) => {
             accessor: 'falta_faturar',
             Cell: (props: any) => <div style={{ textAlign: "right" }}>{props.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>,
             Header: () => (
-                <div style={{ textAlign: "right" }}>A Faturar</div>)
+                <div style={{ textAlign: "right" }}>A Boletar (NF)</div>)
+        },
+        {
+            id: 'customer-saldo-faturar',
+            accessor: row => row.customer.falta_faturar,
+            Cell: (props: any) => <div style={{ textAlign: "right" }}>{props.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>,
+            Header: () => (
+                <div style={{ textAlign: "right" }}>A Boletar (Cliente)</div>)
         }
     ], []);
 
@@ -251,14 +286,9 @@ const Index: React.FC<IPageProps> = (props) => {
 
     return (
         <Layout title={title}>
+            <ToastContainer autoClose={false} />
             <div className="flex items-center justify-between mb-6">
                 <h1 className="mb-1 text-2xl font-bold">{title}</h1>
-                <button
-                    type="button"
-                    className="bg-green-500 hover:bg-green-700 text-white font-bold mx-4 py-2 px-4 rounded-full inline-flex items-center" >
-                    <FiFilter size={18}></FiFilter>
-                    <span className="ml-2">Filtro</span>
-                </button>
             </div>
 
             <Form ref={formFiltroRef} onSubmit={handleSubmit} >
@@ -295,63 +325,48 @@ const Index: React.FC<IPageProps> = (props) => {
                         </div>
                     </div>
                     <div className="mx-2 mt-1 flex">
-                        <div className="w-1/4 mr-2">
+                        <div className="w-1/6 mr-2">
                             <Input
                                 name="nf_ini"
                                 label="Nº Nota Inicial"
                             />
                         </div>
 
-                        <div className="w-1/4 mr-2">
+                        <div className="w-1/6 mr-2">
                             <Input
                                 name="nf_fin"
                                 label="Nº Nota Final"
                             />
                         </div>
 
-                        <div className="w-1/4 mr-2">
+                        <div className="w-1/6 mr-2">
                             <DatePicker
                                 name="data_ini"
                                 label="Data Inicial"
                             />
                         </div>
-                        <div className="w-1/4">
+                        <div className="w-1/6 mr-2">
                             <DatePicker
                                 name="data_fin"
                                 label="Data Final"
                             />
                         </div>
-                    </div>
-                    <div className="mx-2 mt-1 flex">
-                        <div className="w-1/4 mr-2">
-                            <Input
-                                name="saldo_ini"
-                                label="Saldo Inicial"
-                            />
-                        </div>
-
-                        <div className="w-1/4 mr-2">
-                            <Input
-                                name="saldo_fin"
-                                label="Saldo Final"
-                            />
-                        </div>
-
-                        <div className="w-1/4 mr-2">
+                        <div className="w-1/6 mr-2">
                             <NumberInput
                                 prefix={'R$'}
-                                name="saldo_cli_ini"
-                                label="Saldo Cliente Inicial"
+                                name="saldo_nf"
+                                label="A Boletar (Cliente)"
                             />
                         </div>
 
-                        <div className="w-1/4">
+                        <div className="w-1/6">
                             <NumberInput
                                 prefix={'R$'}
-                                name="saldo_cli_fin"
-                                label="Saldo Cliente Final"
+                                name="saldo_cli"
+                                label="A Boletar (Cliente)"
                             />
                         </div>
+
                     </div>
                     <div className="my-4 justify-end flex">
                         <button
@@ -422,24 +437,27 @@ const Index: React.FC<IPageProps> = (props) => {
                         <div className="flex-1">
                             <label htmlFor="agente" className="mb-2">Conta Corrente</label>
                             <Select
+                                menuPlacement="top"
                                 className="mt-1"
                                 name="conta_corrente"
                                 options={contasCorrentes}
                             />
                         </div>
                         <div className="">
-                            <button
+                            <LoadingButton
+                                loading={isLoading}
                                 type="submit"
-                                className="bg-green-500 hover:bg-green-700 text-white font-bold py-2.5 px-4 rounded inline-flex items-center" >
+                                className="bg-green-500 hover:bg-green-700 text-white font-bold py-2.5 px-4 rounded inline-flex items-center"
+                            >
                                 <FiFilter size={18}></FiFilter>
                                 <span className="ml-2">Gerar Lote</span>
-                            </button>
+                            </LoadingButton>
                         </div>
                     </div>
                 </Form>
             </div>
 
-        </Layout>
+        </Layout >
     );
 };
 
