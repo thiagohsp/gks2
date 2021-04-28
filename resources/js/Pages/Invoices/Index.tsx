@@ -13,6 +13,8 @@ import { format, parseISO } from "date-fns";
 import { Column } from "react-table";
 import { toast, ToastContainer } from 'react-toastify';
 import LoadingButton from "../../Shared/LoadingButton";
+import route from "ziggy-js";
+import { Inertia } from "@inertiajs/inertia";
 
 interface ICustomer {
     id: string;
@@ -189,7 +191,9 @@ const Index: React.FC<IPageProps> = (props) => {
         });
     }
 
-    const handleSubmitLote: SubmitHandler<FormData> = async (formData) => {
+    const handleSubmitLote: SubmitHandler<FormData> = async (formData, helper, event) => {
+
+        event?.preventDefault();
 
         const requestData = {
             ...formData,
@@ -202,14 +206,20 @@ const Index: React.FC<IPageProps> = (props) => {
 
             setIsLoading(true);
 
-            const result = await axios.post('/api/batch', requestData).then((response) => {
-                toast.dismiss();
-                setIsLoading(false)
-            });
+            // const result = await axios.post('', requestData).then((response) => {
+            //     toast.dismiss();
+            //     setIsLoading(false)
+            // });
 
-            toast.success('Lote gerado com sucesso', {
-                autoClose: 3000
-            });
+            Inertia.post('/api/batch', requestData);
+
+            // toast.success('Lote gerado com sucesso', {
+            //     autoClose: 3000
+            // });
+
+            // Inertia.visit('/lotes', {
+            //     method: 'get'
+            // })
 
         } catch (error) {
 
@@ -397,7 +407,7 @@ const Index: React.FC<IPageProps> = (props) => {
                         <Input
                             name="codigo_lote"
                             label="Código do Lote"
-                            style={{ flex: "auto" }}
+                            style={{ flex: "auto", textTransform: 'uppercase' }}
                         />
                         <DatePicker
                             name="data_vencimento"

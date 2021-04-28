@@ -5815,6 +5815,8 @@ var react_toastify_1 = __webpack_require__(/*! react-toastify */ "./node_modules
 
 var LoadingButton_1 = __importDefault(__webpack_require__(/*! ../../Shared/LoadingButton */ "./resources/js/Shared/LoadingButton.tsx"));
 
+var inertia_1 = __webpack_require__(/*! @inertiajs/inertia */ "./node_modules/@inertiajs/inertia/dist/index.js");
+
 var Index = function Index(props) {
   var _a = react_1.useState([]),
       invoices = _a[0],
@@ -5934,52 +5936,37 @@ var Index = function Index(props) {
     });
   };
 
-  var handleSubmitLote = function handleSubmitLote(formData) {
+  var handleSubmitLote = function handleSubmitLote(formData, helper, event) {
     return __awaiter(void 0, void 0, void 0, function () {
-      var requestData, result, error_1;
+      var requestData;
       return __generator(this, function (_a) {
-        switch (_a.label) {
-          case 0:
-            requestData = __assign(__assign({}, formData), {
-              notas_fiscais: selectedRows
-            });
-            _a.label = 1;
+        event === null || event === void 0 ? void 0 : event.preventDefault();
+        requestData = __assign(__assign({}, formData), {
+          notas_fiscais: selectedRows
+        });
 
-          case 1:
-            _a.trys.push([1, 3,, 4]);
+        try {
+          react_toastify_1.toast.info('Gerando lote, aguarde...');
+          setIsLoading(true); // const result = await axios.post('', requestData).then((response) => {
+          //     toast.dismiss();
+          //     setIsLoading(false)
+          // });
 
-            react_toastify_1.toast.info('Gerando lote, aguarde...');
-            setIsLoading(true);
-            return [4
-            /*yield*/
-            , axios_1["default"].post('/api/batch', requestData).then(function (response) {
-              react_toastify_1.toast.dismiss();
-              setIsLoading(false);
-            })];
-
-          case 2:
-            result = _a.sent();
-            react_toastify_1.toast.success('Lote gerado com sucesso', {
-              autoClose: 3000
-            });
-            return [3
-            /*break*/
-            , 4];
-
-          case 3:
-            error_1 = _a.sent();
-            react_toastify_1.toast.dismiss();
-            react_toastify_1.toast.error("Erro ao gerar o lote " + error_1);
-            setIsLoading(false);
-            return [3
-            /*break*/
-            , 4];
-
-          case 4:
-            return [2
-            /*return*/
-            ];
+          inertia_1.Inertia.post('/api/batch', requestData); // toast.success('Lote gerado com sucesso', {
+          //     autoClose: 3000
+          // });
+          // Inertia.visit('/lotes', {
+          //     method: 'get'
+          // })
+        } catch (error) {
+          react_toastify_1.toast.dismiss();
+          react_toastify_1.toast.error("Erro ao gerar o lote " + error);
+          setIsLoading(false);
         }
+
+        return [2
+        /*return*/
+        ];
       });
     });
   };
@@ -6197,7 +6184,8 @@ var Index = function Index(props) {
     name: "codigo_lote",
     label: "C\xF3digo do Lote",
     style: {
-      flex: "auto"
+      flex: "auto",
+      textTransform: 'uppercase'
     }
   }), react_1["default"].createElement(DatePicker_1["default"], {
     name: "data_vencimento",
