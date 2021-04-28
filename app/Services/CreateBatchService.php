@@ -2,14 +2,16 @@
 
 namespace App\Services;
 
+use App\Jobs\SendEmail;
 use App\Mail\SendBatchMail;
 use App\Repository\Eloquent\AccountRepository;
 use App\Repository\Eloquent\BatchRepository;
 use App\Repository\Eloquent\BillRepository;
 use App\Repository\Eloquent\CustomerRepository;
 use App\Repository\Eloquent\InvoiceRepository;
+use GuzzleHttp\Client;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
@@ -21,6 +23,7 @@ class CreateBatchService
     private InvoiceRepository $invoiceRepository;
     private AccountRepository $accountRepository;
     private CustomerRepository $customerRepository;
+    private Client $mainoClient;
 
 	public function __construct(BatchRepository $batchRepository,
                                 BillRepository  $billRepository,
@@ -33,6 +36,19 @@ class CreateBatchService
 		$this->invoiceRepository  = $invoiceRepository;
 		$this->accountRepository  = $accountRepository;
 		$this->customerRepository  = $customerRepository;
+
+        $url = App::environment('local')
+            ? 'https://testes.maino.com.br/api/v2/'
+            : 'https://api.maino.com.br/api/v2/';
+
+        $this->mainoClient = new Client([
+            // Base URI is used with relative requests
+            'base_uri' => $url,
+            'headers' => [
+                'Content-Type'     => 'application/json',
+                'X-Api-Key'        => env('MAINO_KEY')
+            ],
+        ]);
 	}
 
 	public function execute(string $code,
@@ -51,7 +67,7 @@ class CreateBatchService
         // Log::info('Executing CreateBatchService...');
 
         $batch = $this->batchRepository->create([
-            'code' => $code,
+            'code' =>  strtoupper($code),
             'total_value' => $totalValue,
             'max_bill_value' => $maxValuePerBill,
             'email' => $email,
@@ -61,7 +77,6 @@ class CreateBatchService
 
         $batch->refresh();
 
-        // Cria o novo boleto
         $createBillService = new CreateBillService(
             $this->billRepository,
             $this->invoiceRepository,
@@ -69,7 +84,7 @@ class CreateBatchService
             $this->customerRepository
         );
 
-        // Log::info('Batch Created: '.$batch);
+        $boletosGerados = array();
 
         $saldoAEmitir = $totalValue;
 
@@ -117,7 +132,13 @@ class CreateBatchService
                         $valorBoleto,
                         $dueDate
                     );
+
+                    if ($bill != null) {
+                        array_push($boletosGerados, $bill);
+                    }
+
                 } catch (\Throwable $th) {
+                    $boletosGerados = array();
                     Log::error($th->getMessage());
                     return null;
                 }
@@ -126,8 +147,23 @@ class CreateBatchService
 
         }
 
-        // Send mail
-        Mail::to($email)->send(new SendBatchMail($batch->id));
+        if (!empty($boletosGerados)) {
+
+            sleep(5);
+
+            foreach ($boletosGerados as $boleto) {
+                # code...
+
+                $response = $this->mainoClient->get('contas_a_recebers/'.$boleto->maino_bill_id, [
+                    'connect_timeout' => 12
+                ]);
+
+                $result = json_decode(($response->getBody()->getContents()));
+
+                $this->billRepository->update($boleto->id, ['link' => $result->link_boleto]);
+            }
+
+        }
 
         return $batch;
 

@@ -28,7 +28,8 @@ class Bill extends Model
         'link',
         'invoice_id',
         'account_id',
-        'batch_id'
+        'batch_id',
+        'maino_bill_id'
     ];
 
     protected $casts = [

@@ -93,25 +93,25 @@ class CreateBillService {
         try {
             //'https://api.maino.com.br/api/v2/notas_fiscais_emitidas'
             $response = $this->mainoClient->post('contas_a_recebers', [
-                'connect_timeout' => 8,
+                'connect_timeout' => 10,
                 'json' => $conta_receber
             ]);
 
             $result = json_decode(($response->getBody()->getContents()));
 
-            if ($result != null) {
+            // if ($result != null) {
 
-                sleep(3);
+            //     sleep(3);
 
-                $response = $this->mainoClient->get('contas_a_recebers/'.$result->id, [
-                    'connect_timeout' => 12
-                ]);
+            //     $response = $this->mainoClient->get('contas_a_recebers/'.$result->id, [
+            //         'connect_timeout' => 12
+            //     ]);
 
-                //Log::info($response->getBody()->getContents());
+            //     //Log::info($response->getBody()->getContents());
 
-                $result = json_decode(($response->getBody()->getContents()));
+            //     $result = json_decode(($response->getBody()->getContents()));
 
-            }
+            // }
 
         } catch (ClientException $e) {
             $errors = json_decode(substr($e->getMessage(), strpos($e->getMessage(), '{')), true);
@@ -134,7 +134,8 @@ class CreateBillService {
             'link'          => $result->link_boleto,
             'invoice_id'    => $invoice->id,
             'account_id'    => $accountId,
-            'batch_id'      => $batchId
+            'batch_id'      => $batchId,
+            'maino_bill_id' => $result->id
         ]);
 
         $bill->refresh();
