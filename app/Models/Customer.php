@@ -29,6 +29,7 @@ class Customer extends Model
         'email',
         'customer_balance',
         'is_active',
+        'status_cnpj',
 
         'maino_customer_id',
         'valor_nota_nfe',

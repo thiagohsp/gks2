@@ -94,6 +94,8 @@ class UpdateInvoices extends Command
 
 
             $response = $this->http->get('notas_fiscais_emitidas', [
+                'data_inicio' => '01/01/2017',
+                'data_fim' => '31/12/2021',
                 'page' => $page
             ])->object();
 
@@ -101,6 +103,8 @@ class UpdateInvoices extends Command
                 $hasNextPage = false;
                 break;
             }
+
+            //dd($response);
 
             $cfops_validos = array("6102","5102","6403","5403","6106", "5106");
 

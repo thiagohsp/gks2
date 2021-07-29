@@ -16,7 +16,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-class UpdateInvoicesCron extends Command
+class UpdateCustomersStatus extends Command
 {
 
     private $http;
@@ -60,47 +60,14 @@ class UpdateInvoicesCron extends Command
      */
     public function handle()
     {
-        // $hasNextPage = true;
-        // $accountRepository  = new AccountRepository(app(Account::class));
-
-        // while ($hasNextPage) {
-
-        //     // Busca as contas correntes //
-        //     $response = $this->http->get('contas_correntes')->object();
-
-        //     if (!isset($response->contas_correntes)) {
-        //         $hasNextPage = false;
-        //         break;
-        //     }
-
-        //     foreach ($response->contas_correntes as $conta_corrente) {
-        //         $contaCorrente = $accountRepository->query()->where(
-        //             'codigo_conta_corrente_maino', '=' , $conta_corrente->codigo_conta_corrente
-        //         )->first();
-
-        //         if (!$contaCorrente || !isset($contaCorrente)) {
-        //             $accountRepository->create([
-        //                 'codigo_conta_corrente_maino' => $conta_corrente->codigo_conta_corrente,
-        //                 'bank_number' => $conta_corrente->numero_banco,
-        //                 'bank_name' => $conta_corrente->nome_banco,
-        //                 'label' => $conta_corrente->descricao,
-        //                 'agency' => $conta_corrente->agencia,
-        //                 'account' => $conta_corrente->conta_corrente,
-        //                 'allow_pjbank_bills' => $conta_corrente->emite_boleto_pjbank,
-        //                 'active' => $conta_corrente->ativa,
-        //             ]);
-        //         }
-        //     }
-
-        // }
-
-        // return;
 
         Log::info('Starting batch process of customers');
 
         $customerRepository = new CustomerRepository(app(Customer::class));
 
-        $customers = $customerRepository->query()->where('updated_at', '<=', '2021-04-10')->get();
+        //$customers = $customerRepository->query()/*->where('updated_at', '<=', '2021-04-10')*/->get();
+        $customers = $customerRepository->query()->whereNull('status_cnpj')->get();
+
         $count = 0;
 
         foreach ($customers as $customer) {
@@ -111,10 +78,13 @@ class UpdateInvoicesCron extends Command
             $response = $this->http->get('cnpj/'.$customer->document_number, [])->object();
 
             $result = $customerRepository->update($customer->id,
-                [ 'is_active' => ($response->situacao == "ATIVA") ]
+                [
+                    'is_active' => ($response->situacao == "ATIVA") ,
+                    'status_cnpj' => ($response->situacao) ,
+                ]
             );
 
-            Log::notice($result. ' | '.$customer->id. ' is '. ($response->situacao == "ATIVA" ? '' : 'NOT ' ) .'active ');
+            Log::notice($result. ' | '.$customer->id. ' is '. $response->situacao);
 
             if ($count == 3) {
                 Log::info('Sleeping...');

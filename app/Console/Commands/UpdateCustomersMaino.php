@@ -16,7 +16,7 @@ class UpdateCustomersMaino extends Command
      *
      * @var string
      */
-    protected $signature = 'update-customers-financial';
+    protected $signature = 'update-customers-maino:cron';
 
     /**
      * The console command description.
@@ -47,6 +47,9 @@ class UpdateCustomersMaino extends Command
      */
     public function handle()
     {
+
+        Log::debug("Starting, Update Customers from Maino base");
+
         $customerRepository = new CustomerRepository(app(Customer::class));
 
         $hasNextPage = true;
@@ -66,9 +69,11 @@ class UpdateCustomersMaino extends Command
 
                 if ($stakeholder->cnpj === null) continue;
 
+                Log::info("CNPJ: ".$stakeholder->cnpj);
+
                 $customer = $customerRepository->findByDocument($stakeholder->cnpj)->first();
 
-                //dd($stakeholder);
+                Log::info("Found customer... ".$customer);
 
                 if (isset($customer->id)) {
 

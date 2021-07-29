@@ -31,6 +31,8 @@ interface ICustomer {
     email: string;
     customer_balance: number;
     falta_faturar: number;
+    is_active: number;
+    status_cnpj: string;
 }
 
 type Invoice = {
@@ -49,6 +51,7 @@ type Invoice = {
     last_letter: string;
     customer: ICustomer;
     falta_faturar: number;
+    valor_pedido_liquido: number;
 }
 
 interface IPageProps {
@@ -82,6 +85,7 @@ interface ICliente {
     id: string;
     social_name: string;
     is_active: boolean;
+    status_cnpj: string;
     value?: string;
     label?: string;
 }
@@ -96,12 +100,14 @@ interface FormData {
     agente2?: string;
     saldo_nf?: number;
     saldo_cli?: number;
+    status_cnpj?: string;
 }
 
 const Index: React.FC<IPageProps> = (props) => {
 
     const [invoices, setInvoices] = useState<Invoice[]>([]);
     const [clientes, setClientes] = useState<ICliente[]>([]);
+    const [situacoesCnpj, setSituacoesCnpj] = useState<{ value: string, label: string }[]>([]);
     const [agents, setAgents] = useState<IAgente[]>([]);
     const [agents2, setAgents2] = useState<IAgente[]>([]);
     const [contasCorrentes, setContasCorrentes] = useState<IContaCorrente[]>([]);
@@ -139,17 +145,37 @@ const Index: React.FC<IPageProps> = (props) => {
 
     useEffect(() => {
         async function loadCustomers() {
+
+            let situacoes: { value: string, label: string }[] = [];
+
             await axios.get<ICliente[]>('api/customers')
                 .then((response) => {
                     const mappedData = response?.data?.map((data) => {
+                        situacoes.push({
+                            value: data.status_cnpj,
+                            label: data.status_cnpj
+                        });
                         return {
                             ...data,
                             value: data.id,
                             label: data.social_name
                         }
                     })
-                    setClientes(mappedData.filter((item) => item.is_active));
-                });
+                    setClientes(mappedData/*.filter((item) => item.is_active)*/);
+                }
+                );
+
+            const map: any = {};
+            const arraySituacoes: { value: string, label: string }[] = [];
+            situacoes.forEach(el => {
+                if (!map[JSON.stringify(el)]) {
+                    map[JSON.stringify(el)] = true;
+                    arraySituacoes.push(el);
+                }
+            });
+
+            setSituacoesCnpj(arraySituacoes);
+
         }
 
         loadCustomers();
@@ -185,6 +211,7 @@ const Index: React.FC<IPageProps> = (props) => {
                 nf_fin: data.nf_fin || null,
                 saldo_nf: Number(data.saldo_nf) || null,
                 saldo_cli: Number(data.saldo_cli) || null,
+                status_cnpj: data.status_cnpj || null,
             }
         }).then((response) => {
             setInvoices(response.data);
@@ -250,14 +277,19 @@ const Index: React.FC<IPageProps> = (props) => {
             accessor: row => row.customer.social_name
         },
         {
+            Header: 'Status',
+            id: 'customer-status',
+            accessor: row => row.customer.status_cnpj
+        },
+        {
             Header: 'Cidade',
             accessor: row => `${row.customer.adress_city}/${row.customer.adress_state}`
         },
         {
-            accessor: 'value',
+            accessor: 'valor_pedido_liquido',
             Cell: (props: any) => <div style={{ textAlign: "right" }}>{props.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>,
             Header: () => (
-                <div style={{ textAlign: "right" }}>Valor</div>)
+                <div style={{ textAlign: "right" }}>Pedido Liq.</div>)
 
         },
         {
@@ -305,7 +337,7 @@ const Index: React.FC<IPageProps> = (props) => {
                 <div className="bg-white rounded shadow p-2 mb-8">
                     <div className="mx-2 flex">
                         <div className="flex-1 mr-1">
-                            <label htmlFor="customer" className="mb-2">Clientes (somente ativos)</label>
+                            <label htmlFor="customer" className="mb-2">Clientes</label>
                             <Select
                                 className="mt-1"
                                 name="customer"
@@ -314,7 +346,17 @@ const Index: React.FC<IPageProps> = (props) => {
                             />
                         </div>
 
-                        <div className="w-1/4 px-1">
+                        <div className="w-1/6 px-1">
+                            <label htmlFor="customer" className="mb-2">Status CNPJ</label>
+                            <Select
+                                className="mt-1"
+                                name="status_cnpj"
+                                options={situacoesCnpj}
+                                isClearable
+                            />
+                        </div>
+
+                        <div className="w-1/6 px-1">
                             <label htmlFor="agente" className="mb-2">Agente</label>
                             <Select
                                 className="mt-1"
@@ -324,7 +366,7 @@ const Index: React.FC<IPageProps> = (props) => {
                             />
                         </div>
 
-                        <div className="w-1/4 pl-1">
+                        <div className="w-1/6 pl-1">
                             <label htmlFor="agente2">Agente 2</label>
                             <Select
                                 className="mt-1"
@@ -365,7 +407,7 @@ const Index: React.FC<IPageProps> = (props) => {
                             <NumberInput
                                 prefix={'R$'}
                                 name="saldo_nf"
-                                label="A Boletar (Cliente)"
+                                label="A Boletar (NF)"
                             />
                         </div>
 
