@@ -5827,20 +5827,24 @@ var Index = function Index(props) {
       setClientes = _b[1];
 
   var _c = react_1.useState([]),
-      agents = _c[0],
-      setAgents = _c[1];
+      situacoesCnpj = _c[0],
+      setSituacoesCnpj = _c[1];
 
   var _d = react_1.useState([]),
-      agents2 = _d[0],
-      setAgents2 = _d[1];
+      agents = _d[0],
+      setAgents = _d[1];
 
   var _e = react_1.useState([]),
-      contasCorrentes = _e[0],
-      setContasCorrentes = _e[1];
+      agents2 = _e[0],
+      setAgents2 = _e[1];
 
-  var _f = react_1.useState(false),
-      isLoading = _f[0],
-      setIsLoading = _f[1];
+  var _f = react_1.useState([]),
+      contasCorrentes = _f[0],
+      setContasCorrentes = _f[1];
+
+  var _g = react_1.useState(false),
+      isLoading = _g[0],
+      setIsLoading = _g[1];
 
   var formFiltroRef = react_1.useRef(null);
   var formLoteRef = react_1.useRef(null);
@@ -5869,28 +5873,43 @@ var Index = function Index(props) {
   react_1.useEffect(function () {
     function loadCustomers() {
       return __awaiter(this, void 0, void 0, function () {
+        var situacoes, map, arraySituacoes;
         return __generator(this, function (_a) {
           switch (_a.label) {
             case 0:
+              situacoes = [];
               return [4
               /*yield*/
               , axios_1["default"].get('api/customers').then(function (response) {
                 var _a;
 
                 var mappedData = (_a = response === null || response === void 0 ? void 0 : response.data) === null || _a === void 0 ? void 0 : _a.map(function (data) {
+                  situacoes.push({
+                    value: data.status_cnpj,
+                    label: data.status_cnpj
+                  });
                   return __assign(__assign({}, data), {
                     value: data.id,
                     label: data.social_name
                   });
                 });
-                setClientes(mappedData.filter(function (item) {
-                  return item.is_active;
-                }));
+                setClientes(mappedData
+                /*.filter((item) => item.is_active)*/
+                );
               })];
 
             case 1:
               _a.sent();
 
+              map = {};
+              arraySituacoes = [];
+              situacoes.forEach(function (el) {
+                if (!map[JSON.stringify(el)]) {
+                  map[JSON.stringify(el)] = true;
+                  arraySituacoes.push(el);
+                }
+              });
+              setSituacoesCnpj(arraySituacoes);
               return [2
               /*return*/
               ];
@@ -5929,7 +5948,8 @@ var Index = function Index(props) {
         nf_ini: data.nf_ini || null,
         nf_fin: data.nf_fin || null,
         saldo_nf: Number(data.saldo_nf) || null,
-        saldo_cli: Number(data.saldo_cli) || null
+        saldo_cli: Number(data.saldo_cli) || null,
+        status_cnpj: data.status_cnpj || null
       }
     }).then(function (response) {
       setInvoices(response.data);
@@ -5987,12 +6007,18 @@ var Index = function Index(props) {
         return row.customer.social_name;
       }
     }, {
+      Header: 'Status',
+      id: 'customer-status',
+      accessor: function accessor(row) {
+        return row.customer.status_cnpj;
+      }
+    }, {
       Header: 'Cidade',
       accessor: function accessor(row) {
         return row.customer.adress_city + "/" + row.customer.adress_state;
       }
     }, {
-      accessor: 'value',
+      accessor: 'valor_pedido_liquido',
       Cell: function Cell(props) {
         return react_1["default"].createElement("div", {
           style: {
@@ -6008,7 +6034,7 @@ var Index = function Index(props) {
           style: {
             textAlign: "right"
           }
-        }, "Valor");
+        }, "Pedido Liq.");
       }
     }, {
       accessor: 'falta_faturar',
@@ -6055,13 +6081,13 @@ var Index = function Index(props) {
   }, []);
   var title = 'Lista de Notas Fiscais';
 
-  var _g = react_1["default"].useState([{}]),
-      selectedRows = _g[0],
-      setSelectedRows = _g[1];
+  var _h = react_1["default"].useState([{}]),
+      selectedRows = _h[0],
+      setSelectedRows = _h[1];
 
-  var _h = react_1["default"].useState(0),
-      totalSaldoSelecionado = _h[0],
-      setTotalSaldoSelecionado = _h[1];
+  var _j = react_1["default"].useState(0),
+      totalSaldoSelecionado = _j[0],
+      setTotalSaldoSelecionado = _j[1];
 
   react_1["default"].useEffect(function () {
     if (selectedRows.length > 0) {
@@ -6095,13 +6121,23 @@ var Index = function Index(props) {
   }, react_1["default"].createElement("label", {
     htmlFor: "customer",
     className: "mb-2"
-  }, "Clientes (somente ativos)"), react_1["default"].createElement(Select_1["default"], {
+  }, "Clientes"), react_1["default"].createElement(Select_1["default"], {
     className: "mt-1",
     name: "customer",
     options: clientes,
     isClearable: true
   })), react_1["default"].createElement("div", {
-    className: "w-1/4 px-1"
+    className: "w-1/6 px-1"
+  }, react_1["default"].createElement("label", {
+    htmlFor: "customer",
+    className: "mb-2"
+  }, "Status CNPJ"), react_1["default"].createElement(Select_1["default"], {
+    className: "mt-1",
+    name: "status_cnpj",
+    options: situacoesCnpj,
+    isClearable: true
+  })), react_1["default"].createElement("div", {
+    className: "w-1/6 px-1"
   }, react_1["default"].createElement("label", {
     htmlFor: "agente",
     className: "mb-2"
@@ -6111,7 +6147,7 @@ var Index = function Index(props) {
     options: agents,
     isClearable: true
   })), react_1["default"].createElement("div", {
-    className: "w-1/4 pl-1"
+    className: "w-1/6 pl-1"
   }, react_1["default"].createElement("label", {
     htmlFor: "agente2"
   }, "Agente 2"), react_1["default"].createElement(Select_1["default"], {
@@ -6146,7 +6182,7 @@ var Index = function Index(props) {
   }, react_1["default"].createElement(NumberInput_1["default"], {
     prefix: 'R$',
     name: "saldo_nf",
-    label: "A Boletar (Cliente)"
+    label: "A Boletar (NF)"
   })), react_1["default"].createElement("div", {
     className: "w-1/6"
   }, react_1["default"].createElement(NumberInput_1["default"], {

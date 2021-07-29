@@ -22,7 +22,10 @@ class InvoiceController extends Controller
     public function index() {
         //dd(Auth::user());
         $response = $this->invoiceRepository->query()->where('status','!=', 'C')->with('customer')->latest('number')->get();
-        //dd($response);
+
+
+        // dd($this->invoiceRepository->paginate(1, ['*'], ['customer']));
+
         return Inertia::render('Invoices/Index', [
             'invoices' => $response
 
@@ -50,16 +53,19 @@ class InvoiceController extends Controller
 
         if ($req->saldo_nf) $query->where('falta_faturar', '>=',  $req->saldo_nf);
 
-        if ($req->saldo_cli) {
+        if ($req->saldo_cli || $req->status_cnpj) {
+            $query->whereHas('customer', function (Builder $query) use($req) {
+                if ($req->saldo_cli && $req->saldo_cli > 0) {
+                    $query->where('falta_faturar', '>=', $req->saldo_cli);
+                }
 
-            $saldoCliente = $req->saldo_cli;
-            $query->whereHas('customer', function (Builder $query) use($saldoCliente) {
-                $query->where('falta_faturar', '>=', $saldoCliente);
+                if ($req->status_cnpj) {
+                    $query->where('status_cnpj', '=', $req->status_cnpj);
+                }
             })->with('customer');
-
-        } else {
-            $query->with('customer');
         }
+
+        $query->with('customer');
 
         $result = $query->latest('number')->get();
 
