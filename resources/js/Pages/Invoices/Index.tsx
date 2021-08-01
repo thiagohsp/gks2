@@ -287,21 +287,21 @@ const Index: React.FC<IPageProps> = (props) => {
         },
         {
             accessor: 'valor_pedido_liquido',
-            Cell: (props: any) => <div style={{ textAlign: "right" }}>{props.value?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>,
+            Cell: (props: any) => <div style={{ textAlign: "right" }}>{props.value ? props.value?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : "0,00"}</div>,
             Header: () => (
                 <div style={{ textAlign: "right" }}>Pedido Liq.</div>)
 
         },
         {
             accessor: 'falta_faturar',
-            Cell: (props: any) => <div style={{ textAlign: "right" }}>{props.value?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>,
+            Cell: (props: any) => <div style={{ textAlign: "right" }}>{props.value ? props.value?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : "0,00"}</div>,
             Header: () => (
                 <div style={{ textAlign: "right" }}>A Boletar (NF)</div>)
         },
         {
             id: 'customer-saldo-faturar',
             accessor: row => row.customer.falta_faturar,
-            Cell: (props: any) => <div style={{ textAlign: "right" }}>{props.value?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>,
+            Cell: (props: any) => <div style={{ textAlign: "right" }}>{props.value ? props.value?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : "0,00"}</div>,
             Header: () => (
                 <div style={{ textAlign: "right" }}>A Boletar (Cliente)</div>)
         }

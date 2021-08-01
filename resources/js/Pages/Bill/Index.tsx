@@ -56,7 +56,7 @@ const Index: React.FC<IPageProps> = (props) => {
         },
         {
             accessor: 'value',
-            Cell: (props: any) => <div style={{ textAlign: "right" }}>{props.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>,
+            Cell: (props: any) => <div style={{ textAlign: "right" }}>{props.value ? props.value?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : "0,00"}</div>,
             Header: () => (
                 <div style={{ textAlign: "right" }}>Valor</div>)
 
