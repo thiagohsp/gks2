@@ -199,7 +199,6 @@ const Index: React.FC<IPageProps> = (props) => {
     }, []);
 
     const handleSubmit: SubmitHandler<FormData> = data => {
-        console.log(data);
         axios.get('api/invoices', {
             params: {
                 customer_id: data.customer || null,
@@ -287,21 +286,21 @@ const Index: React.FC<IPageProps> = (props) => {
         },
         {
             accessor: 'valor_pedido_liquido',
-            Cell: (props: any) => <div style={{ textAlign: "right" }}>{props.value ? props.value?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : "0,00"}</div>,
+            Cell: (props: any) => <div style={{ textAlign: "right" }}>{Number(props.value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>,
             Header: () => (
                 <div style={{ textAlign: "right" }}>Pedido Liq.</div>)
 
         },
         {
             accessor: 'falta_faturar',
-            Cell: (props: any) => <div style={{ textAlign: "right" }}>{props.value ? props.value?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : "0,00"}</div>,
+            Cell: (props: any) => <div style={{ textAlign: "right" }}>{Number(props.value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>,
             Header: () => (
                 <div style={{ textAlign: "right" }}>A Boletar (NF)</div>)
         },
         {
             id: 'customer-saldo-faturar',
             accessor: row => row.customer.falta_faturar,
-            Cell: (props: any) => <div style={{ textAlign: "right" }}>{props.value ? props.value?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : "0,00"}</div>,
+            Cell: (props: any) => <div style={{ textAlign: "right" }}>{Number(props.value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>,
             Header: () => (
                 <div style={{ textAlign: "right" }}>A Boletar (Cliente)</div>)
         }
@@ -441,6 +440,7 @@ const Index: React.FC<IPageProps> = (props) => {
                     setSelectedRows={setSelectedRows}
                 />
             </div>
+
 
             <div className="my-4 bg-white rounded shadow">
                 <h1 className="mb-1 text-xl font-bold p-4">Dados do Lote</h1>

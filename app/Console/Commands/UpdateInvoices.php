@@ -94,8 +94,8 @@ class UpdateInvoices extends Command
 
 
             $response = $this->http->get('notas_fiscais_emitidas', [
-                'data_inicio' => '01/01/2017',
-                'data_fim' => '31/12/2021',
+                'data_inicio' => '01/01/2010',
+                'data_fim' => '31/12/2016',
                 'page' => $page
             ])->object();
 

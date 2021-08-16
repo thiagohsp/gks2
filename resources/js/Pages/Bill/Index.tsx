@@ -35,8 +35,6 @@ interface IPageProps {
 
 const Index: React.FC<IPageProps> = (props) => {
 
-    console.log(props.data)
-
     const columns: Array<Column<Bill>> = useMemo(() => [
         {
             Header: 'Número',

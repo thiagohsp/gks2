@@ -46,7 +46,6 @@ const AdvancedSearch: React.FC = () => {
     }, []);
 
     const handleSubmit: SubmitHandler<FormData> = data => {
-        console.log(data);
         axios.get('api/invoices', {
             params: {
                 customer_id: data.customer,
@@ -55,8 +54,6 @@ const AdvancedSearch: React.FC = () => {
                 nf_ini: data.nf_ini,
                 nf_fin: data.nf_fin,
             }
-        }).then((response) => {
-            console.log(response);
         });
     }
 

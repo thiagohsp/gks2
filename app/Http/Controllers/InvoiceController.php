@@ -20,17 +20,13 @@ class InvoiceController extends Controller
     }
 
     public function index() {
-        //dd(Auth::user());
-        $response = $this->invoiceRepository->query()->where('status','!=', 'C')->with('customer')->latest('number')->get();
-
-
-        // dd($this->invoiceRepository->paginate(1, ['*'], ['customer']));
+        //$response = $this->invoiceRepository->query()->where('status','!=', 'C')->with('customer')->latest('number')->get();
 
         return Inertia::render('Invoices/Index', [
-            'invoices' => $response
+            'invoices' => [] //$response
 
         ]);
-        //return response()->json($this->invoiceRepository->paginate(20, ['*'], ['customer']), 200);
+
     }
 
     public function query(Request $req) {
