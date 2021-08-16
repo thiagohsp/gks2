@@ -14,6 +14,11 @@ interface ICliente {
     label?: string;
 }
 
+interface IFilterData {
+    agents_2: string[];
+    agents: string[];
+}
+
 interface FormData {
     customer?: string;
     data_ini?: Date;
@@ -32,6 +37,12 @@ const AdvancedSearch: React.FC = () => {
     const formRef = useRef<FormHandles>(null)
 
     useEffect(() => {
+        axios.get('api/filters').then(
+            (response) => {
+                console.log(response)
+            }
+        );
+
         axios.get<ICliente[]>('api/customers')
             .then((response) => {
                 const mappedData = response?.data?.map((data) => {

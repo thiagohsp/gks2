@@ -103,6 +103,11 @@ interface FormData {
     status_cnpj?: string;
 }
 
+interface IFilterData {
+    agents_2: [{ agent_2: string }];
+    agents: [{ agent: string }];
+}
+
 const Index: React.FC<IPageProps> = (props) => {
 
     const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -116,29 +121,32 @@ const Index: React.FC<IPageProps> = (props) => {
     const formLoteRef = useRef<FormHandles>(null);
 
     useEffect(() => {
+        axios.get<IFilterData>('api/filters').then(
+            (response) => {
+                console.log(response.data.agents)
+                const distinctAgents = response.data.agents.map((item => ({
+                    label: item.agent || "--",
+                    value: item.agent || "--"
+                })
+                ));
+
+                setAgents(distinctAgents);
+
+                const distinctAgents2 = response.data.agents_2.map((item => ({
+                    label: item.agent_2 || "--",
+                    value: item.agent_2 || "--"
+                })
+                ));
+
+                setAgents2(distinctAgents2);
+            }
+        );
+
+
+    }, []);
+
+    useEffect(() => {
         const { invoices } = props;
-
-        const distinctAgents = Array.from(new Set(invoices.map(x => x.agent))).map(
-            (item) => {
-                return {
-                    label: item || "",
-                    value: item || ""
-                }
-            }
-        );
-
-        setAgents(distinctAgents);
-
-        const distinctAgents2 = Array.from(new Set(invoices.map(x => x.agent_2))).map(
-            (item) => {
-                return {
-                    label: item || "",
-                    value: item || ""
-                }
-            }
-        );
-
-        setAgents2(distinctAgents2);
 
         setInvoices(invoices);
     }, []);
@@ -286,21 +294,42 @@ const Index: React.FC<IPageProps> = (props) => {
         },
         {
             accessor: 'valor_pedido_liquido',
-            Cell: (props: any) => <div style={{ textAlign: "right" }}>{Number(props.value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>,
+            Cell: (props: any) => {
+                const { value } = props;
+
+                if (value)
+                    return (<div style={{ textAlign: "right" }}>{Number(props.value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>)
+                else
+                    return (<div style={{ textAlign: "right" }}>R$ 0,00</div>)
+            },
             Header: () => (
                 <div style={{ textAlign: "right" }}>Pedido Liq.</div>)
 
         },
         {
             accessor: 'falta_faturar',
-            Cell: (props: any) => <div style={{ textAlign: "right" }}>{Number(props.value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>,
+            Cell: (props: any) => {
+                const { value } = props;
+
+                if (value)
+                    return (<div style={{ textAlign: "right" }}>{Number(props.value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>)
+                else
+                    return (<div style={{ textAlign: "right" }}>R$ 0,00</div>)
+            },
             Header: () => (
                 <div style={{ textAlign: "right" }}>A Boletar (NF)</div>)
         },
         {
             id: 'customer-saldo-faturar',
             accessor: row => row.customer.falta_faturar,
-            Cell: (props: any) => <div style={{ textAlign: "right" }}>{Number(props.value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>,
+            Cell: (props: any) => {
+                const { value } = props;
+
+                if (value)
+                    return (<div style={{ textAlign: "right" }}>{Number(props.value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>)
+                else
+                    return (<div style={{ textAlign: "right" }}>R$ 0,00</div>)
+            },
             Header: () => (
                 <div style={{ textAlign: "right" }}>A Boletar (Cliente)</div>)
         }
